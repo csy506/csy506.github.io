@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://csy506.github.io/</id>
+    <id>http://cva.coding.me.get/</id>
     <title>Gridea</title>
-    <updated>2019-08-15T13:58:30.911Z</updated>
+    <updated>2019-08-15T14:11:43.910Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://csy506.github.io/"/>
-    <link rel="self" href="https://csy506.github.io//atom.xml"/>
+    <link rel="alternate" href="http://cva.coding.me.get/"/>
+    <link rel="self" href="http://cva.coding.me.get//atom.xml"/>
     <subtitle>温故而知新</subtitle>
-    <logo>https://csy506.github.io//images/avatar.png</logo>
-    <icon>https://csy506.github.io//favicon.ico</icon>
+    <logo>http://cva.coding.me.get//images/avatar.png</logo>
+    <icon>http://cva.coding.me.get//favicon.ico</icon>
     <rights>All rights reserved 2019, Gridea</rights>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
-        <id>https://csy506.github.io//post/hello-gridea</id>
-        <link href="https://csy506.github.io//post/hello-gridea">
+        <id>http://cva.coding.me.get//post/hello-gridea</id>
+        <link href="http://cva.coding.me.get//post/hello-gridea">
         </link>
         <updated>2018-12-11T16:00:00.000Z</updated>
         <summary type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
