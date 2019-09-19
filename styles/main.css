@@ -752,8 +752,7 @@ a {
   margin: 4px 8px;
 }
 
-      <style>
-#feedAv{ margin-top: -250px!important;transform: scale(0);}
+      #feedAv{ margin-top: -250px!important;transform: scale(0);}
 #MZAD_POP_PLACEHOLDER {
     display: none !important;
 }
@@ -766,5 +765,4 @@ a {
 .module-cmt-list{display:none!important;} 
 .section-service-w{height: 0px;opacity: 0;}
 .btn-fw{background:#5fb878 url(https://static.krnet.cc/skin/images/release.svg)center no-repeat !important;width:60px !important; height:60px !important;border-radius:70px;important;margin-top:-5px!important;margin-right:40px!important;background-size:30px !important;box-shadow: 0 2px 6px rgba(0,0,0,.2);-webkit-transition:.3s;transition:.3s}
-</style>
     
