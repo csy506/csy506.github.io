@@ -1,0 +1,1 @@
+(function hitokoto(){var hitokoto="花开如火，也如寂寞。";var dom=document.querySelector('#hitokoto');Array.isArray(dom)?dom[0].innerText=hitokoto:dom.innerText=hitokoto;})()
