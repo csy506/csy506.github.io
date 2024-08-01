@@ -1,1 +1,356 @@
-ream.me
+<!DOCTYPE html>
+<!-- saved from url=(0023)http://csy506.83tw.com/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>网址导航</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+			color: #09F
+        }
+        .search-form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .search-form input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px 0 0 5px;
+            outline: none;
+        }
+        .search-form button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        .link-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            grid-gap: 20px;
+        }
+        .link-list a {
+            display: block;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        .link-list a:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+
+  <!-- 导航条部分-->
+    <style>
+        /* 电脑端样式 */
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+        }
+        .navbar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .navbar a.icon {
+                float: right;
+                display: none;
+        }
+
+        /* 移动端样式 */
+        @media screen and (max-width: 600px) {
+            .navbar a:not(:first-child) {display: none;}
+            .navbar a.icon {
+                float: right;
+                display: block;
+            }
+
+            .navbar.responsive {position: relative;}
+            .navbar.responsive a.icon {
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+            .navbar.responsive a {
+                float: none;
+                display: block;
+                text-align: left;
+            }
+        }
+    </style>
+
+
+    <style>
+        /* 搜索条样式 */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+        }
+        .search-bar select,
+        .search-bar input[type="text"],
+        .search-bar input[type="submit"] {
+            height: 40px;
+            font-size: 16px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 28px;
+            margin-right: 12px;
+            width: 80px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        .search-bar select {
+            width: 120px;
+            background-color: #f2f2f2;
+            color: #666;
+			text-align: center;	
+        }
+        .search-bar input[type="text"] {
+            flex: 1;
+            background-color: #fff;
+            color: #333;
+        }
+
+    </style>
+    <script>
+        window.onload = function () {
+            var searchBar = document.querySelector('.search-bar');
+            var searchInput = searchBar.querySelector('input[type="text"]');
+            var searchBtn = searchBar.querySelector('input[type="submit"]');
+            var searchSelect = searchBar.querySelector('select');
+
+            // 点击搜索按钮
+            searchBtn.onclick = function () {
+                doSearch();
+            };
+
+            // 回车搜索
+            searchInput.onkeydown = function (event) {
+                if (event.keyCode === 13) {
+                    doSearch();
+                }
+            };
+
+            // 执行搜索
+            function doSearch() {
+                var searchEngine = searchSelect.value;
+                var searchKeyword = searchInput.value;
+
+                if (searchEngine === 'bing') {
+                    window.open('https://cn.bing.com/search?q=' + searchKeyword);
+                } else if (searchEngine === 'baidu') {
+                    window.open('https://www.baidu.com/s?wd=' + searchKeyword);
+                } else if (searchEngine === 'B站') {
+                    window.open('https://search.bilibili.com/all?keyword=' + searchKeyword);
+                } else if (searchEngine === '抖音') {
+                    window.open('https://www.douyin.com/search/' + searchKeyword);
+                } else if (searchEngine === '知乎') {
+                    window.open('https://www.zhihu.com/search?type=content&q=' + searchKeyword);
+                } else if (searchEngine === '腾讯视频') {
+                    window.open('https://v.qq.com/x/search/?q=' + searchKeyword);
+                } else if (searchEngine === '爱奇异') {
+                    window.open('https://so.iqiyi.com/so/q_' + searchKeyword);
+                } else if (searchEngine === '西瓜') {
+                    window.open('https://www.ixigua.com/search/' + searchKeyword);
+                } else if (searchEngine === '花瓣网') {
+                    window.open('https://huaban.com/search?q=' + searchKeyword);
+                } else if (searchEngine === '高清电影') {
+                    window.open('https://b2sf.com/vodsearch/-------------.html?wd=' + searchKeyword);
+                } else if (searchEngine === '好看视频') {
+                    window.open('https://haokan.baidu.com/web/search/page?query=' + searchKeyword);
+                } else if (searchEngine === '解析视频') {
+                    window.open('https://jx.xmflv.cc/?url=' + searchKeyword);
+                } else if (searchEngine === '二手房') {
+                    window.open('https://shanghai.anjuke.com/sale/rd1/?q=' + searchKeyword);
+                }
+            }
+        };
+    </script>   
+
+
+</head>
+<body>
+
+
+    <!-- 导航条 -->
+    <div class="navbar" id="myNavbar">
+        <a href="http://csy506.83tw.com/#" class="active">首页</a>
+        <a href="https://smzdk.top/" target="_blank">新闻</a>
+        <a href="https://piaofang.maoyan.com/dashboard/" target="_blank">电影票房</a>
+        <a href="https://www.maoyan.com/" target="_blank">电影订票</a>
+        <a href="https://csy506.github.io/jiexi/index.html" target="_blank">解析接口</a>
+        <a href="https://tophub.today/" target="_blank">今日热榜</a>
+        <a href="https://support.qq.com/products/453992/post/171574966836277923/" target="_blank">评论 兔小巢</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">☰</a>
+    </div>
+
+    <!-- 折叠菜单的JavaScript代码 -->
+    <script>
+        function myFunction() {
+            var x = document.getElementById("myNavbar");
+            if (x.className === "navbar") {
+                x.className += " responsive";
+            } else {
+                x.className = "navbar";
+            }
+        }
+    </script>
+    
+    <!-- 网址菜单部分 -->
+    <div class="container">
+        <h1>网址导航</h1>
+
+    <div class="search-bar">
+        <select>
+            <option value="bing">bing</option>
+            <option value="baidu">百度</option>
+            <option value="B站">B站</option>
+            <option value="抖音">抖音</option>
+            <option value="知乎">知乎</option>
+            <option value="腾讯视频">腾讯视频</option>
+            <option value="爱奇异">爱奇异</option>
+            <option value="西瓜">西瓜</option>
+            <option value="花瓣网">花瓣网</option>
+            <option value="高清电影">高清电影</option>
+            <option value="好看视频">好看视频</option>
+            <option value="解析视频">解析视频</option>
+            <option value="二手房">二手房</option>
+        </select>
+        <input type="text" placeholder="请输入搜索内容 Ctrl+F或G或H为浏览器搜索">
+        <input type="submit" value="搜索">
+    </div>
+
+
+        <div class="link-list">
+            <a href="https://fanyi.youdao.com/index.html" target="_blank">有道翻译</a>
+            <a href="https://tianqi.qq.com/" target="_blank">天气预报</a>
+            <a href="https://www.zhihu.com/" target="_blank">知乎新闻</a>
+            <a href="https://news.baidu.com/" target="_blank">百度新闻</a>
+            <a href="https://smzdk.top/" target="_blank">热点聚合</a>
+            <a href="https://tools.liumingye.cn/music/#/search/M/song/%E4%B8%8B%E9%9B%A8%E5%A4%A9" target="_blank">音乐搜索</a>
+            <a href="https://music.163.com/#/discover/toplist/" target="_blank">网易音乐</a>
+            <a href="https://www.qingting.fm/radios/274/" target="_blank">听广播台</a>
+            <a href="https://mail.qq.com/" target="_blank">QQ邮箱</a>
+            <a href="https://22.do/" target="_blank">临时邮箱</a>
+            <a href="https://www.baidu.com/s?wd=%E6%97%A5%E5%8E%86" target="_blank">日历节日</a>
+            <a href="https://www.logosc.cn/online-ps" target="_blank">在线PS</a>
+            <a href="https://www.tuyitu.com/" target="_blank">在线PS图艺</a>
+            <a href="https://www.gaoding.com/templates" target="_blank">稿定海报</a>
+            <a href="https://docs.qq.com/desktop/" target="_blank">腾讯文档</a>
+            <a href="https://jpgrm.com/" target="_blank">去水印图片</a>
+            <a href="https://www.anyrec.io/zh/free-online-watermark-remover/#" target="_blank">复杂去水印</a>
+            <a href="https://papago.naver.com/?sk=zh-CN&amp;tk=zh-TW&amp;st=%E4%B8%8B%E6%96%B9S%E5%9B%BE%E6%A0%87%E6%89%93%E5%BC%80%E6%89%8B%E5%86%99" target="_blank">手写查字</a>
+            <a href="https://www.iamwawa.cn/ocr.html" target="_blank">识字工具</a>
+            <a href="https://web.baimiaoapp.com/" target="_blank">图片转文字</a>
+            <a href="https://ocr.wdku.net/" target="_blank">图片识字</a>
+            <a href="https://www.xiaohuazhuo.com/" target="_blank">在线白板</a>
+            <a href="https://www.tldraw.com/" target="_blank">好用白板</a>
+            <a href="https://handraw.top/" target="_blank">国外白板</a>
+            <a href="http://www.cha128.com/archives/165/" target="_blank">文字识别</a>
+            <a href="https://convertio.co/zh/" target="_blank">PDF转格式</a>
+            <a href="https://tools.pdf24.org/zh/" target="_blank">PDF工具集</a>
+            <a href="https://www.aconvert.com/cn/" target="_blank">文件转格式</a>          
+            <a href="https://aiqicha.baidu.com/" target="_blank">爱企查</a>
+            <a href="https://www.sscha.com/" target="_blank">商查查</a>            
+            <a href="https://cloud.baidu.com/product/tms/list?keyword=%E5%95%86%E6%A0%87&amp;" target="_blank">商标查询</a>
+            <a href="https://daxie.chazhi.net/">发票数字</a>
+            <a href="https://bigjpg.com/" target="_blank">图片放大</a>
+            <a href="https://www.aiyuzhou8.com/up" target="_blank">放大4倍</a>
+            <a href="https://img.logosc.cn/bigjpg" target="_blank">改图放大</a>
+            <a href="https://waifu2x.udp.jp/" target="_blank">放大卡通</a>
+            <a href="https://www.vectorizer.io/" target="_blank">转矢量图</a>
+            <a href="https://www.whee.com/" target="_blank">美图Whee</a>
+            <a href="https://pc.meitu.com/" target="_blank">美图秀秀</a>
+            <a href="https://www.doubao.com/chat/" target="_blank">豆包AI</a>
+            <a href="https://kimi.moonshot.cn/" target="_blank">Kimi AI</a>
+            <a href="https://wenyaai.com/" target="_blank">AI文章</a>
+            <a href="https://www.tiangong.cn/" target="_blank">天工ai</a>
+            <a href="https://metaso.cn/" target="_blank">秘塔ai</a>            
+            <a href="https://suno.com/" target="_blank">写歌ai</a>
+            <a href="https://applet.rightbrainai.cn/text2Image" target="_blank">vega作图ai</a>
+            <a href="https://dreamina.jianying.com/" target="_blank">即梦画图ai</a>
+            <a href="https://image.baidu.com/front/aigc?tn=aigc&word=" target="_blank">百度画ai</a>
+            <a href="https://www.liblib.art/modelinfo/b83309c7db6a45908af19e51b47cdce6?from=feed" target="_blank">哩ai提示词</a>
+            <a href="https://anypaint.xingzheai.cn/" target="_blank">图片ai</a>
+            <a href="https://modelscope.cn/studios" target="_blank">阿里魔塔</a>
+            <a href="https://zhiwen.xfyun.cn/" target="_blank">讯飞ppt生成</a>
+            <a href="https://docs.qq.com/doc/DV0tnVVpTS2pxdVBT" target="_blank">AI生成ppt</a>
+            <a href="https://quzuotu.com/home" target="_blank">抠图全能</a>
+            <a href="https://cutout.aiwave.cc/" target="_blank">帮抠图</a>
+            <a href="https://bgsub.cn/webapp/" target="_blank">BgSub抠图</a>
+            <a href="https://www.remove.bg/zh/" target="_blank">re抠图</a>
+            <a href="https://ai-image.tools/home#google_vignette" target="_blank">抠图ai</a>
+            <a href="https://arc.tencent.com/zh/ai-demos/humansegmentation" target="_blank">人像抠图</a>
+            <a href="https://www.pexels.com/zh-cn/" target="_blank">图片版权</a>
+            <a href="https://tiqu.cc/" target="_blank">图片下载</a>
+            <a href="http://www.18zt.com/list1-2-1/2699.html" target="_blank">字体在线</a>
+            <a href="https://www.100font.com/" target="_blank">免费字体</a>
+            <a href="https://www.hellofont.cn/font-list?tag=73" target="_blank">字由字体</a>
+            <a href="https://fonthaha.com/font/font-list" target="_blank">字笑字体</a>
+            <a href="https://www.tinygimp.com/text3d/" target="_blank">3D字体</a>
+            <a href="https://www.ishencai.com/text-effect" target="_blank">神彩ai字体</a>
+            <a href="https://pixian.ai/" target="_blank">批量抠图</a>
+            <a href="https://aigc.baidu.com/home" target="_blank">度加ai视频</a>
+            <a href="https://aic.oceanengine.com/login" target="_blank">既创ai视频</a>
+            <a href="https://autocut.video/" target="_blank">自动剪辑神</a>
+            <a href="https://youyan.xyz/platform/subscribe" target="_blank">有言3D人</a>
+            <a href="https://toolwa.com/record/" target="_blank">录制屏幕</a>
+            <a href="https://www.goenhance.ai/" target="_blank">视频转卡通</a>
+            <a href="https://ihomepage.cn/" target="_blank">浏览器插件</a>
+            <a href="https://tool.a5.cn/video.html" target="_blank">A5工具集合</a>
+            <a href="https://faceswap.so/zh-cn/editor?templateId=clvesknsy000j4eyodmaodq6u" target="_blank">图片换脸</a>           
+            <a href="https://vocalremover.org/zh/" target="_blank">分离人声</a>
+            <a href="https://www.lalal.ai/zh-hans/" target="_blank">人声分离</a>
+            <a href="https://www.unscreen.com/upload" target="_blank">视频去水印</a>  
+            <a href="https://www.uugai.com/" target="_blank">Logo标志</a> 
+            <a href="https://www.logomaker.com.cn/" target="_blank">标智客logo</a>
+            <a href="http://www.sounso.com/" target="_blank">品牌设计</a>
+            <a href="https://www.mockplus.cn/" target="_blank">设计协作</a>
+            <a href="https://tingwu.aliyun.com/home" target="_blank">AI会议记录</a> 
+            <a href="https://tool.browser.qq.com/id_photo.html" target="_blank">证件照</a> 
+            <a href="https://image.baidu.com/search/index?tn=baiduimage&ipn=r&ct=201326592&cl=2&lm=-1&st=-1&fm=detail&fr=baiduimageedit&hs=0&xthttps=111110&sf=1&fmq=1713767239197_R&pv=&ic=0&nc=1&z=&se=&showtab=0&fb=0&width=&height=&face=0&istype=2&ie=utf-8&word=bdaitpzs%E7%99%BE%E5%BA%A6AI%E5%9B%BE%E7%89%87%E5%8A%A9%E6%89%8Bbdaitpzs&oq=%E5%9B%BE%E7%89%87&rsp=-1&lid=13368762565583578780&toolType=4" target="_blank">AI扩图背景</a>
+            <a href="https://image.baidu.com/front/aigc?tn=aigc&word=" target="_blank">AI画一画</a>
+            <a href="https://image.baidu.com/" target="_blank">AI画提示词</a>
+            <a href="https://fxsh.com/" target="_blank">福星狮导航</a> 
+
+        </div>
+    </div>
+
+
+</body></html>
