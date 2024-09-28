@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自适应按钮列表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1900px; /* 设置容器最大宽度 */
+            margin: 0 auto; /* 居中容器 */
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .button-list {
+            display: grid; /* 使用网格布局 */
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* 自动填写列，最小宽度为150px */
+            gap: 10px; /* 列间距 */
+            padding: 0;
+            list-style: none; /* 去除列表默认样式 */
+        }
+        .button {
+            display: flex; /* 使用弹性盒布局 */
+            align-items: center; /* 垂直居中 */
+            justify-content: space-between; /* 两端对齐 */
+            padding: 15px 20px;
+            background-color: #808080; /* 按钮背景色（灰色） */
+            color: white;
+            text-decoration: none; /* 去除链接下划线 */
+            border-radius: 5px; /* 边角圆润 */
+            cursor: pointer; /* 鼠标悬停时显示手指光标 */
+            transition: background-color 0.3s; /* 添加背景色过渡效果 */
+        }
+        .button:hover {
+            background-color: #696969; /* 悬停时颜色变化（深灰色） */
+        }
+        .play-icon {
+            margin-left: 10px; /* 图标与文本间距 */
+        }
+        @media (min-width: 1000px) {
+            .button-list {
+                grid-template-columns: repeat(8, 1fr); /* 大于1000px时8列 */
+            }
+        }
+        @media (max-width: 600px) {
+            .button-list {
+                grid-template-columns: repeat(2, 1fr); /* 小于600px时2列 */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>播放列表</h1>
+    <ul class="button-list">
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc00200sfn10z7/d410015usk1.html" target="_blank">
+                01雪夜凶灯
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc00200wvr54jf/g410028oki1.html" target="_blank">
+                02孤注一掷
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc002008ndf45x/m41001henbd.html" target="_blank">
+                03寂静之地入侵日
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc002007gqzd02/w4100l37pl0.html" target="_blank">
+                04异人之下电影
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc002006ldp6dl/w4100lzpu3h.html" target="_blank">
+                05第十二条
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc002003u1yf19/j4100hj13z4.html" target="_blank">
+                06末路狂花钱
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc00200ebzfc5n/o410068y27l.html" target="_blank">
+                07云边有个小卖部
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc00200qcssnxs/j41001s2z37.html" target="_blank">
+                08负负得正
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/mzc00200j4p253l/g4100y2yja8.html" target="_blank">
+                09白日之下
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+        <li>
+            <a class="button" href="https://jx.xmflv.cc/?url=https://v.qq.com/x/cover/0s4fa14ciz3ohd0/p0047w54ncc.html" target="_blank">
+                10封神 朝哥风雨
+                <span class="play-icon">▶</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>
