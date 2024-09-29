@@ -9,7 +9,6 @@
             margin: 0;
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 20px;
             background-color: #f4f4f4;
         }
         .container {
@@ -62,12 +61,11 @@
             width: 90%;
             height: 500px;
             background-color: black;
-            position: relative; /* 设置定位 */
-            border-radius: 10px; /* 圆角 */
+            position: relative;
         }
         .close {
             cursor: pointer;
-            color: white; /* 关闭按钮颜色 */
+            color: white;
             font-size: 30px;
             position: absolute;
             right: 20px;
@@ -79,70 +77,30 @@
 
 <h1>播放列表</h1>
 <div class="container">
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮1</button>
 
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮2</button>
 
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮1</button>
-
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮2</button>
-
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮3</button>
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮3</button>
 
 
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮4</button>
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮4</button>
 
 
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮5</button>
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮5</button>
 
 
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮6</button>
 
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮7</button>
 
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮6</button>
-
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮7</button>
-
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮8</button>
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮8</button>
 
 
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮9</button>
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮9</button>
 
 
-    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B
-
-%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF
-
-%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮10</button>
+    <button class="button" onclick="openModal('https://qywechat.s3.cn-northwest-1.amazonaws.com.cn/jw4fj9-%E1%84%8B%E1%85%A7%E1%86%AF%E1%84%85%E1%85%B5%E1%86%AB%E1%84%8B%E1%85%B3%E1%86%B7%E1%84%8B%E1%85%A1%E1%86%A8%E1%84%92%E1%85%AC%20-%20KARD%20-%20%E1%84%8F%E1%85%A1%E1%86%A8%E1%84%90%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%89%E1%85%A1%E1%84%85%E1%85%A1%E1%86%BC.20180812.mp4')">按钮10</button>
 
 
 </div>
