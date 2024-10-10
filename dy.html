@@ -1,65 +1,72 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>看片选择入口</title>
-<style>
-    body {
-        font-family: Arial, sans-serif; /* 设置页面的字体 */
-        display: flex; /* 使用 Flexbox 布局 */
-        justify-content: center; /* 在主轴方向上居中对齐内容 */
-        align-items: center; /* 在交叉轴方向上居中对齐内容 */
-        height: 100vh; /* 使 body 高度为视口高度 */
-        margin: 0; /* 去掉默认的 margin */
-        background-color: #f0f0f0; /* 设置背景颜色 */
-    }
-    button {
-        width: 300px; /* 设置按钮的固定宽度*/
-        padding: 15px 30px; /* 设置按钮的内边距，上下 15px，左右 30px */
-        font-size: 16px; /* 设置按钮文本的字体大小 */
-        border: none; /* 去掉按钮的边框 */
-        border-radius: 5px; /* 设置按钮的圆角 */
-        cursor: pointer; /* 鼠标悬停时显示为手型 */
-        background-color: #4285F4; /* 设置按钮的背景颜色 */
-        color: white; /* 设置按钮文本颜色为白色 */
-        margin: 10px; /* 设置按钮上下左右的外边距 */
-        transition: background-color 0.3s; /* 设置背景颜色变化的过渡效果 */
-    }
-    button:hover {
-        background-color: #357ae8; /* 鼠标悬停时改变按钮的背景颜色 */
-    }
-</style>
-
+    <title>自适应宽度网页</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+        }
+        .image {
+            max-width: 100%; /* 使图片自适应宽度 */
+            height: auto;
+        }
+        .hidden {
+            display: none; /* 用于隐藏区域 */
+        }
+        @media (max-width: 600px) {
+            #region1 {
+                display: block; /* 显示区域1 */
+            }
+            #region2 {
+                display: none; /* 隐藏区域2 */
+            }
+        }
+        @media (min-width: 601px) and (max-width: 900px) {
+            #region1 {
+                display: none; /* 隐藏区域1 */
+            }
+            #region2 {
+                display: block; /* 显示区域2 */
+            }
+        }
+        @media (min-width: 901px) {
+            #region1 {
+                display: none; /* 隐藏区域1 */
+            }
+            #region2 {
+                display: block; /* 显示区域2 */
+            }
+        }
+    </style>
 </head>
 <body>
-<p>
-<button onclick="openLinkAndCopy('https://v.qq.com/channel/movie', 'https://jx.xmflv.cc/?url=')">电影1腾讯的 ▶</button>
-<br>
-<button onclick="openLinkAndCopy('https://www.iqiyi.com/movie/', 'https://www.8090g.cn/jiexi/?url=')">电影2爱奇艺 ▶</button>
-<br>
-<button onclick="openLinkAndCopy('https://b2sf.com/vodsearch/-------------/?wd=%E4%BD%A0%E5%A5%BD%E6%9D%8E%E7%84%95%E8%8B%B1', 'https://www.8090g.cn/jiexi/?url=')">搜索片名 直接看 ▶</button>
-<br>
-<button onclick="openLinkAndCopy('https://piaofang.maoyan.com/dashboard', 'https://www.8090g.cn/jiexi/?url=')">片名榜单 ▶</button>
-<br>
-<button onclick="openLinkAndCopy('https://www.maoyan.com/', 'https://www.8090g.cn/jiexi/?url=')">片名榜单2▶</button>
-</p>
-<img src="dy41.jpg" alt="使用说明图片">
 
-<script>
-    function openLinkAndCopy(url, textToCopy) {
-        // 创建一个 textarea 元素用于复制
-        const textarea = document.createElement("textarea");
-        textarea.value = textToCopy;
-        document.body.appendChild(textarea);
-        textarea.select(); // 选中内容
-        document.execCommand("copy"); // 执行复制操作
-        document.body.removeChild(textarea); // 移除 textarea
+<div class="container">
+    <!-- 区域1 -->
+    <div id="region1">
+        <a href="https://b2sf.com/">
+            <img src="dy41.jpg" alt="区域1图片" class="image">
+        </a>
+    </div>
 
-        // 打开指定网址
-        window.open(url, '_blank');
-    }
-</script>
+    <!-- 区域2 -->
+    <div id="region2" class="hidden">
+        <h1>欢迎来到我的网页</h1>
+        <img src="dy42.jpg" alt="区域2图片" class="image">
+    </div>
+</div>
 
 </body>
 </html>
