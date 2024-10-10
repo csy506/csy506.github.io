@@ -144,6 +144,22 @@
             <button onclick="openLinkAndCopy('https://www.maoyan.com/', 'https://www.8090g.cn/jiexi/?url=')">片名榜单2▶</button>
             <button onclick="openLinkAndCopy('https://b2sf.com/', 'https://b2sf.com/')">电影选片 ▶</button>
         </div>
+<script>
+    function openLinkAndCopy(url, textToCopy) {
+        // 创建一个 textarea 元素用于复制
+        const textarea = document.createElement("textarea");
+        textarea.value = textToCopy;
+        document.body.appendChild(textarea);
+        textarea.select(); // 选中内容
+        document.execCommand("copy"); // 执行复制操作
+        document.body.removeChild(textarea); // 移除 textarea
+
+        // 打开指定网址
+        window.open(url, '_blank');
+    }
+</script>
+
+
 
         <div class="content">
             <img src="dy42.jpg" alt="区域2图片" class="image">
