@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自适应宽度网页</title>
+    <title>在线影视选片</title>
     <style>
         body {
             margin: 0;
@@ -14,63 +14,68 @@
             height: 100vh;
             overflow: hidden;
             text-align: center;
-
-        font-family: Arial, sans-serif; /* 设置页面的字体 */
-        display: flex; /* 使用 Flexbox 布局 */
-        justify-content: center; /* 在主轴方向上居中对齐内容 */
-        align-items: center; /* 在交叉轴方向上居中对齐内容 */
-        height: 100vh; /* 使 body 高度为视口高度 */
-        margin: 0; /* 去掉默认的 margin */
-        background-color: #f0f0f0; /* 设置背景颜色 */
-    }
-    button {
-        width: 300px; /* 设置按钮的固定宽度*/
-        padding: 15px 30px; /* 设置按钮的内边距，上下 15px，左右 30px */
-        font-size: 16px; /* 设置按钮文本的字体大小 */
-        border: none; /* 去掉按钮的边框 */
-        border-radius: 5px; /* 设置按钮的圆角 */
-        cursor: pointer; /* 鼠标悬停时显示为手型 */
-        background-color: #4285F4; /* 设置按钮的背景颜色 */
-        color: white; /* 设置按钮文本颜色为白色 */
-        margin: 10px; /* 设置按钮上下左右的外边距 */
-        transition: background-color 0.3s; /* 设置背景颜色变化的过渡效果 */
-    }
-    button:hover {
-        background-color: #357ae8; /* 鼠标悬停时改变按钮的背景颜色 */
+            background-color: #f0f0f0; /* 默认背景颜色 */
+            transition: background-color 0.3s; /* 平滑过渡背景颜色变化 */
         }
 
+        button {
+            width: 300px; /* 设置按钮的固定宽度*/
+            padding: 15px 30px; /* 设置按钮的内边距，上下 15px，左右 30px */
+            font-size: 16px; /* 设置按钮文本的字体大小 */
+            border: none; /* 去掉按钮的边框 */
+            border-radius: 5px; /* 设置按钮的圆角 */
+            cursor: pointer; /* 鼠标悬停时显示为手型 */
+            background-color: #4285F4; /* 设置按钮的背景颜色 */
+            color: white; /* 设置按钮文本颜色为白色 */
+            margin: 10px; /* 设置按钮上下左右的外边距 */
+            transition: background-color 0.3s; /* 设置背景颜色变化的过渡效果 */
+        }
+
+        button:hover {
+            background-color: #357ae8; /* 鼠标悬停时改变按钮的背景颜色 */
+        }
 
         .container {
             width: 100%;
             padding: 20px;
         }
+
         .image {
             max-width: 100%; /* 使图片自适应宽度 */
             height: auto;
         }
+
         .hidden {
             display: none; /* 用于隐藏区域 */
         }
+
         /* 区域1样式 */
         #region1 {
             display: none; /* 默认隐藏 */
         }
+
         /* 区域2样式 */
         #region2 {
             display: none; /* 默认隐藏 */
             display: flex; /* 设置为flex布局 */
         }
+
         .sidebar {
             flex: 1; /* 左栏占据1的比例 */
             text-align: center; /* 左对齐 */
         }
+
         .content {
             flex: 1; /* 右栏占据1的比例 */
             text-align: center; /* 中间对齐 */
         }
-        
+
         /* 媒体查询以控制显示 */
         @media (max-width: 700px) {
+            body {
+                background-color: black; /* 宽度小于等于700px时背景颜色为黑色 */
+                color: white; /* 文字颜色变为白色 */
+            }
             #region1 {
                 display: block; /* 显示区域1 */
             }
@@ -78,6 +83,7 @@
                 display: none; /* 隐藏区域2 */
             }
         }
+
         @media (min-width: 901px) {
             #region1 {
                 display: none; /* 隐藏区域1 */
@@ -95,7 +101,7 @@
                 // 0.1秒后自动跳转到指定网页
                 setTimeout(function() {
                     window.location.href = "https://b2sf.com/";
-                }, 70); // 70毫秒后跳转
+                }, 100); // 100毫秒后跳转
             }
         };
 
@@ -106,9 +112,13 @@
             if (window.innerWidth <= 700) {
                 region1.style.display = "block"; // 显示区域1
                 region2.style.display = "none"; // 隐藏区域2
+                document.body.style.backgroundColor = "black"; // 设置背景为黑色
+                document.body.style.color = "white"; // 设置文字为白色
             } else if (window.innerWidth >= 900) {
                 region1.style.display = "none"; // 隐藏区域1
                 region2.style.display = "flex"; // 显示区域2
+                document.body.style.backgroundColor = "#f0f0f0"; // 恢复背景为默认颜色
+                document.body.style.color = "black"; // 恢复文字为默认颜色
             }
         };
     </script>
@@ -127,28 +137,13 @@
     <div id="region2" class="hidden">
         <div class="sidebar">
             <h2>按钮列表</h2>
-    <button onclick="openLinkAndCopy('https://v.qq.com/channel/movie', 'https://jx.xmflv.cc/?url=')">电影1腾讯的 ▶</button>
-    <button onclick="openLinkAndCopy('https://www.iqiyi.com/movie/', 'https://www.8090g.cn/jiexi/?url=')">电影2爱奇艺 ▶</button>
-    <button onclick="openLinkAndCopy('https://b2sf.com/vodsearch/-------------/?wd=', 'https://www.8090g.cn/jiexi/?url=')">搜索片名 直接看 ▶</button>
-    <button onclick="openLinkAndCopy('https://piaofang.maoyan.com/dashboard', 'https://www.8090g.cn/jiexi/?url=')">片名榜单 ▶</button>
-    <button onclick="openLinkAndCopy('https://www.maoyan.com/', 'https://www.8090g.cn/jiexi/?url=')">片名榜单2▶</button>
-    <button onclick="openLinkAndCopy('https://b2sf.com/', 'https://b2sf.com/')">电影选片 ▶</button>
+            <button onclick="openLinkAndCopy('https://v.qq.com/channel/movie', 'https://jx.xmflv.cc/?url=')">电影1腾讯的 ▶</button>
+            <button onclick="openLinkAndCopy('https://www.iqiyi.com/movie/', 'https://www.8090g.cn/jiexi/?url=')">电影2爱奇艺 ▶</button>
+            <button onclick="openLinkAndCopy('https://b2sf.com/vodsearch/-------------/?wd=', 'https://www.8090g.cn/jiexi/?url=')">搜索片名 直接看 ▶</button>
+            <button onclick="openLinkAndCopy('https://piaofang.maoyan.com/dashboard', 'https://www.8090g.cn/jiexi/?url=')">片名榜单 ▶</button>
+            <button onclick="openLinkAndCopy('https://www.maoyan.com/', 'https://www.8090g.cn/jiexi/?url=')">片名榜单2▶</button>
+            <button onclick="openLinkAndCopy('https://b2sf.com/', 'https://b2sf.com/')">电影选片 ▶</button>
         </div>
-<script>
-    function openLinkAndCopy(url, textToCopy) {
-        // 创建一个 textarea 元素用于复制
-        const textarea = document.createElement("textarea");
-        textarea.value = textToCopy;
-        document.body.appendChild(textarea);
-        textarea.select(); // 选中内容
-        document.execCommand("copy"); // 执行复制操作
-        document.body.removeChild(textarea); // 移除 textarea
-
-        // 打开指定网址
-        window.open(url, '_blank');
-    }
-</script>
-
 
         <div class="content">
             <img src="dy42.jpg" alt="区域2图片" class="image">
