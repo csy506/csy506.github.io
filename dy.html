@@ -38,7 +38,7 @@
                 display: none; /* 隐藏区域1 */
             }
             #region2 {
-                display: block; /* 显示区域2 */
+                display: none; /* 隐藏区域2 */
             }
         }
         @media (min-width: 901px) {
@@ -50,6 +50,33 @@
             }
         }
     </style>
+    <script>
+        // 当文档加载完成后，判断窗口宽度
+        window.onload = function() {
+            if (window.innerWidth <= 600) {
+                // 0.1秒后自动跳转到指定网页
+                setTimeout(function() {
+                    window.location.href = "https://b2sf.com/";
+                }, 100); // 100毫秒后跳转
+            }
+        };
+
+        // 监听窗口大小变化以更新区域显示
+        window.onresize = function() {
+            const region1 = document.getElementById("region1");
+            const region2 = document.getElementById("region2");
+            if (window.innerWidth > 600 && window.innerWidth < 900) {
+                region1.style.display = "none"; // 隐藏区域1
+                region2.style.display = "none"; // 隐藏区域2
+            } else if (window.innerWidth >= 900) {
+                region1.style.display = "none"; // 隐藏区域1
+                region2.style.display = "block"; // 显示区域2
+            } else {
+                region1.style.display = "block"; // 显示区域1
+                region2.style.display = "none"; // 隐藏区域2
+            }
+        };
+    </script>
 </head>
 <body>
 
@@ -64,7 +91,7 @@
     <!-- 区域2 -->
     <div id="region2" class="hidden">
         <h1>欢迎来到我的网页</h1>
-        <img src="dy42.jpg" alt="区域2图片" class="image">
+        <img src="https://csy506.github.io/dy42.jpg" alt="区域2图片" class="image">
     </div>
 </div>
 
