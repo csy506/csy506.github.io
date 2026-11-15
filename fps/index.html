@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>铁壁行动 — 仓库7区</title>
+<title>铁壁行动 — 仓库区G3</title>
 <meta name="description" content="Ten hostiles hold a container yard. You have three minutes. The entire game — world, weapons, AI and audio — is one 290 KB HTML file with no build step and no asset files.">
 <meta name="author" content="Prasenjit">
 <meta name="theme-color" content="#0a0c0e">
@@ -4751,6 +4751,8 @@ const keys = Object.create(null);
 let mouseDX=0, mouseDY=0;
 const SENS = 0.0022;
 let sensScale = 1;              // shrinks with ADS zoom so aim stays 1:1 on screen
+// QQ浏览器兼容模式：记录上一帧鼠标位置，用于无指针锁定时的拖拽转视角
+let compatMouseLastX = undefined, compatMouseLastY = undefined;
 
 addEventListener('keydown', e=>{
   if (e.repeat) { if(['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV'].includes(e.code)) e.preventDefault(); return; }
@@ -4774,19 +4776,29 @@ addEventListener('mousemove', e=>{
   // 注意：兼容模式下需要按住鼠标右键或左键拖拽才能转视角，避免误触
   const isLocked = document.pointerLockElement === document.body;
   const isCompatMode = G.running && !G.paused && !isLocked && (e.buttons & 1 || e.buttons & 2);
-  if (!isLocked && !isCompatMode) return;
+  if (!isLocked && !isCompatMode){
+    // 未按住鼠标时清空上一帧坐标，避免点击瞬间跳视角
+    compatMouseLastX = undefined;
+    compatMouseLastY = undefined;
+    return;
+  }
   if (isLocked){
     mouseDX += e.movementX || 0;
     mouseDY += e.movementY || 0;
   } else {
     // 兼容模式：计算相对上一帧的移动
-    if (mousemove._lastX !== undefined){
-      mouseDX += (e.clientX - mousemove._lastX) * 0.8;
-      mouseDY += (e.clientY - mousemove._lastY) * 0.8;
+    if (compatMouseLastX !== undefined){
+      mouseDX += (e.clientX - compatMouseLastX) * 0.8;
+      mouseDY += (e.clientY - compatMouseLastY) * 0.8;
     }
-    mousemove._lastX = e.clientX;
-    mousemove._lastY = e.clientY;
+    compatMouseLastX = e.clientX;
+    compatMouseLastY = e.clientY;
   }
+});
+// 鼠标松开时清空兼容模式坐标记录
+addEventListener('mouseup', ()=>{
+  compatMouseLastX = undefined;
+  compatMouseLastY = undefined;
 });
 addEventListener('mousedown', e=>{
   if (!G.running) return;
@@ -4797,6 +4809,11 @@ addEventListener('mousedown', e=>{
      cooldown between rounds, so the gun answers the instant it is able. */
   if (e.button===0){ player.triggerHeld=true; player.clickBuf=0.12; }
   if (e.button===2){ e.preventDefault(); toggleADS(); }
+  // 兼容模式：鼠标按下时立即记录初始坐标，避免第一次拖拽跳视角
+  if (document.pointerLockElement !== document.body){
+    compatMouseLastX = e.clientX;
+    compatMouseLastY = e.clientY;
+  }
 });
 addEventListener('mouseup', e=>{ if (e.button===0){ player.triggerHeld=false; player.triggerReleased=true; } });
 addEventListener('wheel', e=>{
