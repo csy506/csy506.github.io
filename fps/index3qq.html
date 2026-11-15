@@ -4816,6 +4816,10 @@ let lastLockRequestTime = 0;
 const LOCK_GRACE_PERIOD = 1500; // ms，延长到1.5秒，覆盖QQ浏览器的延迟释放
 // 标记用户刚刚点击了继续按钮，此时忽略临时解锁
 let justClickedResume = false;
+// 重试定时器变量
+let lockChangeRetryTimer = null;
+let lockRequestTimer = null;
+let lockErrorTimer = null;
 
 // 监听ESC键主动按下 - 在浏览器默认处理之前标记
 document.addEventListener('keydown', e=>{
@@ -4848,8 +4852,8 @@ document.addEventListener('pointerlockchange', ()=>{
     if ((timeSinceLockRequest < LOCK_GRACE_PERIOD || justClickedResume) && !userInitiatedUnlock){
       // QQ浏览器等可能出现短暂锁定后立即释放的情况，延迟重试锁定
       // 不立即暂停，而是尝试重新获取指针锁
-      clearTimeout(pointerlockchange._retryT);
-      pointerlockchange._retryT = setTimeout(()=>{
+      clearTimeout(lockChangeRetryTimer);
+      lockChangeRetryTimer = setTimeout(()=>{
         justClickedResume = false;
         if (document.pointerLockElement !== document.body && G.started && !G.over && !G.paused){
           requestLock();
@@ -4868,8 +4872,8 @@ document.addEventListener('pointerlockchange', ()=>{
     SFX.suspend();
   } else if (locked){
     // 锁定成功，清除重试定时器和标记
-    clearTimeout(pointerlockchange._retryT);
-    clearTimeout(requestLock._t);
+    clearTimeout(lockChangeRetryTimer);
+    clearTimeout(lockRequestTimer);
     userInitiatedUnlock = false;
     justClickedResume = false;
     G.paused = false;
@@ -4884,8 +4888,8 @@ function requestLock(){
   /* a denied request fires no pointerlockchange, which would leave the round
      live but with no mouse look. fall back to the pause overlay so a second
      click can try again. */
-  clearTimeout(requestLock._t);
-  requestLock._t = setTimeout(()=>{
+  clearTimeout(lockRequestTimer);
+  lockRequestTimer = setTimeout(()=>{
     if (document.pointerLockElement === document.body) return;
     if (!G.started || G.over) return;
     // QQ浏览器修复：最多重试3次
@@ -4909,8 +4913,8 @@ function requestLock(){
 // 监听pointerlockerror错误（QQ浏览器等可能因安全策略阻止指针锁定）
 document.addEventListener('pointerlockerror', ()=>{
   // 错误发生时延迟重试，而不是直接暂停
-  clearTimeout(pointerlockerror._t);
-  pointerlockerror._t = setTimeout(()=>{
+  clearTimeout(lockErrorTimer);
+  lockErrorTimer = setTimeout(()=>{
     if (G.started && !G.over && document.pointerLockElement !== document.body){
       requestLock();
     }
