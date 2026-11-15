@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QQ浏览器Pointer Lock测试工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; color: #4fc3f7; }
+        .panel {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #0f3460;
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #0f3460;
+        }
+        .status-row:last-child { border-bottom: none; }
+        .status-label { font-weight: 500; color: #aaa; }
+        .status-value { font-weight: 600; font-family: monospace; font-size: 15px; }
+        .success { color: #4caf50; }
+        .fail { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196f3; }
+        .test-area {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 60px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            margin: 20px 0;
+            transition: all 0.2s;
+            border: 3px dashed #e94560;
+        }
+        .test-area:hover { background: #1a4072; border-color: #ff6b81; }
+        .test-area.locked { border-color: #4caf50; background: #1b5e20; }
+        .log-panel {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #161b22; }
+        .log-time { color: #8b949e; margin-right: 10px; }
+        .log-ok { color: #7ee787; }
+        .log-err { color: #ff7b72; }
+        .log-warn { color: #ffa657; }
+        .log-info { color: #79c0ff; }
+        .btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 8px;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #ff6b81; }
+        .btn.secondary { background: #0f3460; }
+        .btn.secondary:hover { background: #1a4072; }
+        .conclusion {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+        .conclusion.ok { background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; }
+        .conclusion.err { background: rgba(244, 67, 54, 0.1); border: 1px solid #f44336; }
+        .conclusion.warn { background: rgba(255, 152, 0, 0.1); border: 1px solid #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 QQ浏览器Pointer Lock测试工具</h1>
+
+        <div class="panel">
+            <h3 style="margin-bottom: 16px; color: #4fc3f7;">📊 环境检测</h3>
+            <div class="status-row">
+                <span class="status-label">User Agent</span>
+                <span class="status-value" id="ua">-</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">API是否存在</span>
+                <span class="status-value" id="apiExists">-</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">当前是否锁定</span>
+                <span class="status-value" id="isLocked">-</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">锁定成功次数</span>
+                <span class="status-value" id="lockCount">0</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">锁定释放次数</span>
+                <span class="status-value" id="unlockCount">0</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">最后一次成功锁定</span>
+                <span class="status-value" id="lastSuccess">-</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">锁定持续最长时间</span>
+                <span class="status-value" id="maxDuration">-</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div id="testArea" class="test-area">
+                <h2 style="margin-bottom: 16px;">👆 点击这里开始测试指针锁定</h2>
+                <p style="color: #ccc;">点击后浏览器会请求锁定鼠标指针，所有事件将自动记录<br>按ESC键可释放锁定，查看是否会被立即释放</p>
+                <p style="margin-top: 16px; font-size: 14px; color: #aaa;">如果点击后出现浏览器提示，请选择"允许"</p>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn" onclick="clearLog()">清空日志</button>
+                <button class="btn secondary" onclick="copyLog()">复制日志到剪贴板</button>
+                <button class="btn secondary" onclick="requestLockWithDelay(2000)">延迟2秒自动请求（测试）</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 style="margin-bottom: 16px; color: #4fc3f7;">📝 事件日志（按时间顺序）</h3>
+            <div id="logPanel" class="log-panel"></div>
+        </div>
+
+        <div id="conclusion" class="conclusion warn">
+            <strong>⏳ 等待测试...</strong><br>
+            点击上方测试区域开始测试，测试后将自动给出结论。
+        </div>
+    </div>
+
+    <script>
+        const testArea = document.getElementById('testArea');
+        const logPanel = document.getElementById('logPanel');
+        const conclusion = document.getElementById('conclusion');
+
+        // 统计数据
+        let stats = {
+            lockCount: 0,
+            unlockCount: 0,
+            lockStartTime: 0,
+            maxDuration: 0,
+            lastSuccessTime: null,
+            errorCount: 0
+        };
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString() + '.' + String(new Date().getMilliseconds()).padStart(3, '0');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-${type}">${msg}</span>`;
+            logPanel.appendChild(entry);
+            logPanel.scrollTop = logPanel.scrollHeight;
+            console.log(`[${time}] ${msg}`);
+        }
+
+        function clearLog() {
+            logPanel.innerHTML = '';
+            stats = { lockCount: 0, unlockCount: 0, lockStartTime: 0, maxDuration: 0, lastSuccessTime: null, errorCount: 0 };
+            updateStats();
+            conclusion.className = 'conclusion warn';
+            conclusion.innerHTML = '<strong>⏳ 等待测试...</strong><br>点击上方测试区域开始测试。';
+            log('日志已清空', 'warn');
+        }
+
+        function copyLog() {
+            const text = logPanel.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                log('日志已复制到剪贴板', 'ok');
+            }).catch(() => {
+                log('复制失败，请手动复制', 'err');
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('lockCount').textContent = stats.lockCount;
+            document.getElementById('unlockCount').textContent = stats.unlockCount;
+            document.getElementById('lastSuccess').textContent = stats.lastSuccessTime || '-';
+            document.getElementById('maxDuration').textContent = stats.maxDuration > 0 ? `${stats.maxDuration} ms` : '-';
+            
+            const locked = document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement;
+            document.getElementById('isLocked').innerHTML = locked ? 
+                '<span class="success">✅ 已锁定</span>' : 
+                '<span class="fail">❌ 未锁定</span>';
+
+            // 更新结论
+            if (stats.lockCount > 0 && stats.unlockCount > 0) {
+                const avgDuration = stats.maxDuration / stats.lockCount;
+                if (stats.maxDuration < 500 && stats.lockCount >= 2) {
+                    conclusion.className = 'conclusion err';
+                    conclusion.innerHTML = `
+                        <strong>❌ 结论：锁定被立即释放（短暂锁定后释放）</strong><br>
+                        锁定成功 ${stats.lockCount} 次，但最长仅持续 ${stats.maxDuration}ms，随后立即被释放。<br>
+                        原因分析：QQ浏览器安全策略或兼容性问题导致锁定后被立即回收。<br>
+                        建议方案：宽限期防抖 + 点击重试 + 边缘补偿兼容模式。
+                    `;
+                } else if (stats.maxDuration > 3000) {
+                    conclusion.className = 'conclusion ok';
+                    conclusion.innerHTML = `
+                        <strong>✅ 结论：锁定正常工作</strong><br>
+                        锁定成功后持续 ${stats.maxDuration}ms 未释放，说明Pointer Lock本身可用。<br>
+                        原游戏问题可能是调用时机或锁定元素选择错误。<br>
+                        建议方案：检查原游戏锁定时机，改为canvas元素锁定。
+                    `;
+                } else {
+                    conclusion.className = 'conclusion warn';
+                    conclusion.innerHTML = `
+                        <strong>⚠️ 结论：锁定不稳定</strong><br>
+                        最长持续 ${stats.maxDuration}ms，锁定后会在短时间内释放。<br>
+                        可能是页面焦点问题或内核切换导致。<br>
+                        建议方案：增加重试机制 + 兼容模式兜底。
+                    `;
+                }
+            } else if (stats.errorCount > 0 && stats.lockCount === 0) {
+                conclusion.className = 'conclusion err';
+                conclusion.innerHTML = `
+                    <strong>❌ 结论：从未成功锁定</strong><br>
+                    发生 ${stats.errorCount} 次错误，但锁定从未成功。<br>
+                    原因分析：${document.getElementById('apiExists').classList.contains('fail') ? 
+                        '当前内核不支持Pointer Lock API（可能是IE兼容模式）' : 
+                        '调用时机错误或权限被拒绝'}<br>
+                    建议方案：${document.getElementById('apiExists').classList.contains('fail') ? 
+                        '切换到极速内核，或使用边缘补偿兼容模式' : 
+                        '将锁定请求改为用户点击同步调用，移除定时器重试'}
+                `;
+            }
+        }
+
+        function requestLock() {
+            log('调用 requestPointerLock()...', 'info');
+            try {
+                const promise = testArea.requestPointerLock({
+                    unadjustedMovement: true
+                });
+                
+                if (promise && typeof promise.then === 'function') {
+                    promise.then(() => {
+                        log('requestPointerLock() Promise resolve（锁定请求成功）', 'ok');
+                    }).catch(err => {
+                        stats.errorCount++;
+                        log(`requestPointerLock() Promise reject: ${err.name} - ${err.message}`, 'err');
+                        log(`错误详情: ${JSON.stringify({name: err.name, message: err.message})}`, 'err');
+                        updateStats();
+                    });
+                } else {
+                    log('requestPointerLock() 已调用（无Promise返回，旧版API）', 'warn');
+                }
+            } catch (err) {
+                stats.errorCount++;
+                log(`调用requestPointerLock()抛出异常: ${err.name} - ${err.message}`, 'err');
+                updateStats();
+            }
+        }
+
+        function requestLockWithDelay(ms) {
+            log(`将在 ${ms}ms 后延迟调用requestPointerLock()（不在用户手势内）...`, 'warn');
+            setTimeout(() => {
+                log('延迟定时器触发，现在调用requestPointerLock()', 'warn');
+                requestLock();
+            }, ms);
+        }
+
+        // 检测API支持
+        function checkAPI() {
+            const hasLock = 'requestPointerLock' in Element.prototype;
+            const hasExit = 'exitPointerLock' in document;
+            const hasChange = 'onpointerlockchange' in document;
+            const hasError = 'onpointerlockerror' in document;
+
+            document.getElementById('ua').textContent = navigator.userAgent.substring(0, 80) + '...';
+            document.getElementById('apiExists').innerHTML = (hasLock && hasExit && hasChange && hasError) ?
+                '<span class="success">✅ 完整支持</span>' :
+                `<span class="fail">❌ 不完整（lock:${hasLock}, exit:${hasExit}, change:${hasChange}, error:${hasError}）</span>`;
+
+            log(`Pointer Lock API检测: lock=${hasLock}, exit=${hasExit}, change=${hasChange}, error=${hasError}`, hasLock ? 'ok' : 'err');
+            
+            // 检测内核
+            if (/Trident|MSIE/.test(navigator.userAgent)) {
+                log('⚠️ 检测到IE内核（Trident），该内核不支持Pointer Lock！', 'err');
+                document.getElementById('apiExists').innerHTML = '<span class="fail">❌ IE内核不支持</span>';
+            } else if (/AppleWebKit.*Chrome/.test(navigator.userAgent)) {
+                log('检测到Chromium内核，应该支持Pointer Lock', 'ok');
+            }
+        }
+
+        // 事件监听
+        function onPointerLockChange() {
+            const locked = document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement;
+            
+            if (locked) {
+                stats.lockCount++;
+                stats.lockStartTime = Date.now();
+                stats.lastSuccessTime = new Date().toLocaleTimeString();
+                log(`✅ pointerlockchange: 锁定成功！锁定元素: ${locked.tagName}#${locked.id || '无id'}`, 'ok');
+                testArea.classList.add('locked');
+            } else {
+                stats.unlockCount++;
+                const duration = Date.now() - stats.lockStartTime;
+                if (duration > stats.maxDuration) stats.maxDuration = duration;
+                log(`❌ pointerlockchange: 锁定释放，本次持续 ${duration}ms`, duration < 500 ? 'err' : 'warn');
+                testArea.classList.remove('locked');
+                
+                if (duration < 100) {
+                    log('⚠️ 锁定持续时间不到100ms，属于"锁上立即释放"', 'err');
+                }
+            }
+            updateStats();
+        }
+
+        function onPointerLockError(e) {
+            stats.errorCount++;
+            log(`❌ pointerlockerror事件触发！`, 'err');
+            log(`错误对象: ${e.type}, isTrusted=${e.isTrusted}`, 'err');
+            updateStats();
+        }
+
+        function onMouseMove(e) {
+            if (document.pointerLockElement === testArea) {
+                // 锁定状态下打印movement数据
+                if (e.movementX !== 0 || e.movementY !== 0) {
+                    // 不刷屏，只在第一次移动时打印
+                    if (!onMouseMove._logged) {
+                        log(`鼠标移动数据正常: movementX=${e.movementX}, movementY=${e.movementY}，相对位移工作正常`, 'ok');
+                        onMouseMove._logged = true;
+                        setTimeout(() => { onMouseMove._logged = false; }, 1000);
+                    }
+                }
+            }
+        }
+
+        function onKeyDown(e) {
+            if (e.key === 'Escape') {
+                log('用户按下ESC键', 'info');
+            }
+        }
+
+        function onFullscreenChange() {
+            const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
+            log(`fullscreenchange事件: ${fsElement ? '进入全屏' : '退出全屏'}`, 'info');
+        }
+
+        function onVisibilityChange() {
+            log(`visibilitychange: ${document.hidden ? '页面隐藏/切换标签' : '页面显示'}`, 'warn');
+        }
+
+        function onBlur() {
+            log('窗口失去焦点（blur事件）', 'warn');
+        }
+
+        function onFocus() {
+            log('窗口获得焦点（focus事件）', 'info');
+        }
+
+        // 绑定事件
+        document.addEventListener('pointerlockchange', onPointerLockChange);
+        document.addEventListener('pointerlockerror', onPointerLockError);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('blur', onBlur);
+        window.addEventListener('focus', onFocus);
+
+        testArea.addEventListener('click', () => {
+            log('用户点击测试区域（用户手势内）', 'info');
+            onMouseMove._logged = false;
+            requestLock();
+        });
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            log('页面加载完成，开始检测环境', 'info');
+            checkAPI();
+            updateStats();
+            log('请点击上方测试区域开始测试', 'info');
+            log('测试步骤：1.点击区域允许锁定 2.等待几秒看是否自动释放 3.按ESC释放观察 4.重复几次看规律', 'info');
+        });
+    </script>
+</body>
+</html>
