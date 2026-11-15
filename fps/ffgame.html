@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>非常宝藏 电脑收藏夹</title>
+
+<meta name="description" content="非常宝藏电脑收藏夹，saltline，游戏合集，道具赛车、坦克大战、我的世界、墨浪对战、种菜小镇、抓精灵、坦克世界、马里奥第一关，电脑Edge浏览器一键打开游玩，支持数字快捷键1~10快速唤起">
+<meta name="keywords" content="AI游戏,网页小游戏,在线AI游戏,道具赛车,坦克大战,墨浪对战,种菜小镇,抓精灵,马里奥第一关,非常宝藏电脑收藏夹">
+<meta name="author" content="非常宝藏">
+
+<meta name="robots" content="index,follow">
+
+<link rel="canonical" href="">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+:root{--bg:#121217;--card:#1e1e28;--text:#e8e8f0;--sub:#a0a0b8;--accent:#6366f1;--hover:#2b2b3b}
+body{background:var(--bg);color:var(--text);padding:24px 16px;min-height:100vh}
+.container{max-width:1600px;margin:0 auto}
+header{text-align:center;margin-bottom:32px}
+h1{font-size:28px;margin-bottom:8px;color:#fff}
+.desc{color:var(--sub);font-size:15px;margin-bottom:6px}
+.key-tip{color:var(--accent);font-size:14px}
+.grid{display:grid;gap:18px}
+@media (max-width:780px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:801px){.grid{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:1301px){.grid{grid-template-columns:repeat(5,1fr)}}
+.card{background:var(--card);border-radius:14px;overflow:hidden;transition:0.25s ease;cursor:pointer;border:1px solid #2a2a38}
+.card:hover{background:var(--hover);transform:translateY(-4px);border-color:var(--accent)}
+.card-inner{padding:18px}
+.card-num{display:inline-block;background:#2c2c3f;color:var(--accent);padding:3px 8px;border-radius:6px;font-size:13px;margin-bottom:10px}
+.card-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.card-info{color:var(--sub);font-size:14px;line-height:1.5}
+footer{margin-top:50px;padding-top:24px;border-top:1px solid #272735;text-align:center;color:var(--sub);font-size:14px;line-height:1.7}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+
+<h1>非常宝藏 电脑收藏夹</h1>
+
+<p class="desc">数字快捷键输入 1~10，支持双位数字10，输入后等待3秒跳转</p>
+<p class="key-tip">当前输入：<span id="inputBox">无</span></p>
+</header>
+
+<div class="grid" id="gameGrid"></div>
+<footer>
+
+<p>本站收录游戏来源于网络，游玩使用电脑Edge浏览器。</p>
+<p>合作交流反馈Q群：906602686</p>
+</footer>
+</div>
+
+<script>
+const PROTO="https://";
+const MP="makeplay.ai/p/";   // 公共域名前缀，仅此一处出现
+// 以 @ 开头的地址自动拼上 MP，其余地址按原样拼 PROTO
+const raw=[
+["铁壁行动","fuwu.pages.dev/fps","枪战打十个"],
+
+["坦克大战","www.jarvisuni.com/game/tanke3d.html","坦克WASD空格"],
+
+["道具赛车","www.jarvisuni.com/game/tiki_turbo.html","赛车WASD和LJK"],
+["诅咒深渊","@wqbmn96spf","法师走位杀怪"],
+
+["鹅之雷霆","@qh23uhgg2j","开坦克飞机打大鹅"],
+
+["街头快打","@amc9burvke","热血拳脚闯关格斗"],
+
+["哐当拆机","clangclang.top","无主之地FPS大作"],
+
+["热带冲浪","@wxxxgg6htp","热血拳脚闯关格斗"],
+
+["棉花糖大麻烦","@y7m5tuqqaa","跑酷跳跃雪人帅"],
+
+["雷铸飞机","@39cfdx9xy4","宇宙飞机弹幕"],
+
+["飞行装甲","@kg5hvbbqc2","5秒飞行方块"],
+
+["无尽冬日","@wq9u2fe2g8","熬过冬天"],
+
+["猩红之钥","@rhcr7anegc","迷宫射击 找钥匙"],
+
+["挥剑远征","@293scpqv4v","15秒开团砍砍砍"],
+
+["方块乱斗","@hvugkkzy8q","放冷抢装备"],
+
+["战舰大战","@svrza4gzvx","开船火炮齐射"],
+
+["星屑战士","@rac5w78mv6","高达宇宙射击"],
+
+["墨浪对战","inkwave.teable.app/","15秒开枪射击"],
+
+["盐线行动","web-jjuuxm.tulingai.com/","逼真25秒开枪saltline"],
+
+["坦克世界","www.jarvisuni.com/game/wot.html","10秒开炮谢尔曼"],
+
+["香蕉大暴走","@4aq7asgbhb","5秒跑酷打僵尸"],
+
+["前哨狂潮","@h36r6qvh3c","10秒方块CS开枪"],
+
+["冒险者工会","@sqteyrfchf","5秒冒险者工会"],
+
+["计划救公主","@7b43knh5gz","带队冲锋剑与魔法"],
+
+["边境世界","@evnpxdhuwn","登录星球采矿"],
+
+["标枪混战","@k6v6xddw8n","看谁投得准"],
+
+["方块赛车","@93q7nruhkj","急速传说方块车"],
+
+["孤烛魔剑士","@8mtn2jqfv6","上下左右 自动攻击"],
+
+["像素剑士","@xxp9us5sda","剑客的冒险"],
+
+["每个世界","@wv888zw33r","兽人永不为奴"],
+
+["铁方阵 坦克","@5cqj2t63ja","方块小坦克"],
+
+["灰烬飞升","@xtaf84u3au","类似暗黑火炬之光"],
+
+["绝境街区","@b5vz3uqvpj","方块人打僵尸"],
+
+["猫猫推箱子","@hffjh7qzkm","推箱子"],
+
+["塔伊卡法师","@dmx9wacdbq","法师挖矿2号"],
+
+["太阳系商人","@9rkv6n6rrk","开飞船运货"],
+
+["我的世界","www.bilibili.com/toy/OpusMC","10秒ai我的世界"],
+
+["音乐歌手","fuwu.pages.dev/aimp3","音乐不是游戏"],
+
+["看电视","fuwu.pages.dev/cctv2","电视节目"]
+
+];
+const gameList=raw.map(([n,h,i])=>({name:n,url:PROTO+(h[0]==="@"?MP+h.slice(1):h),intro:i}));
+const gridWrap=document.getElementById("gameGrid");
+const inputBox=document.getElementById("inputBox");
+let inputBuffer="",timer=null;
+const WAIT_MS=3000;
+// 渲染卡片
+gameList.forEach((item,idx)=>{
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=`<div class="card-inner"><div class="card-num">${idx+1}</div><div class="card-title">${item.name}</div><div class="card-info">${item.intro||""}</div></div>`;
+  card.onclick=()=>window.open(item.url,"_blank");
+  gridWrap.appendChild(card);
+});
+// 快捷键监听
+document.addEventListener("keydown",(e)=>{
+  const n=parseInt(e.key);
+  if(isNaN(n))return;
+  clearTimeout(timer);
+  inputBuffer+=e.key;
+  inputBox.innerText=inputBuffer;
+  const numVal=parseInt(inputBuffer);
+  if(numVal>=1&&numVal<=10){
+    timer=setTimeout(()=>{
+      window.open(gameList[numVal-1].url,"_blank");
+      inputBuffer="";inputBox.innerText="无";
+    },WAIT_MS);
+  }else{
+    inputBuffer="";inputBox.innerText="无";
+  }
+})
+</script>
+</body>
+</html>
