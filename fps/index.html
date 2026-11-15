@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>铁壁行动 — 仓库区</title>
+<title>铁壁行动 — 仓库7区</title>
 <meta name="description" content="Ten hostiles hold a container yard. You have three minutes. The entire game — world, weapons, AI and audio — is one 290 KB HTML file with no build step and no asset files.">
 <meta name="author" content="Prasenjit">
 <meta name="theme-color" content="#0a0c0e">
@@ -4770,9 +4770,23 @@ addEventListener('keydown', e=>{
 });
 addEventListener('keyup', e=>{ keys[e.code]=false; });
 addEventListener('mousemove', e=>{
-  if (document.pointerLockElement !== document.body) return;
-  mouseDX += e.movementX || 0;
-  mouseDY += e.movementY || 0;
+  // QQ浏览器兼容：如果是兼容模式（无指针锁定但游戏在运行），使用鼠标相对位置
+  // 注意：兼容模式下需要按住鼠标右键或左键拖拽才能转视角，避免误触
+  const isLocked = document.pointerLockElement === document.body;
+  const isCompatMode = G.running && !G.paused && !isLocked && (e.buttons & 1 || e.buttons & 2);
+  if (!isLocked && !isCompatMode) return;
+  if (isLocked){
+    mouseDX += e.movementX || 0;
+    mouseDY += e.movementY || 0;
+  } else {
+    // 兼容模式：计算相对上一帧的移动
+    if (mousemove._lastX !== undefined){
+      mouseDX += (e.clientX - mousemove._lastX) * 0.8;
+      mouseDY += (e.clientY - mousemove._lastY) * 0.8;
+    }
+    mousemove._lastX = e.clientX;
+    mousemove._lastY = e.clientY;
+  }
 });
 addEventListener('mousedown', e=>{
   if (!G.running) return;
@@ -4793,9 +4807,63 @@ addEventListener('wheel', e=>{
 }, {passive:true});
 addEventListener('contextmenu', e=>e.preventDefault());
 
+/* ==================== QQ浏览器/国产浏览器Pointer Lock兼容性修复 ==================== */
+// 标记是否是用户主动按ESC退出指针锁定
+let userInitiatedUnlock = false;
+// 记录上次请求锁定的时间，防止刚请求锁定就误判为解锁
+let lastLockRequestTime = 0;
+// 防抖：锁定请求后的一段时间内忽略解锁事件（QQ浏览器可能先触发锁定再立即解锁）
+const LOCK_GRACE_PERIOD = 1500; // ms，延长到1.5秒，覆盖QQ浏览器的延迟释放
+// 标记用户刚刚点击了继续按钮，此时忽略临时解锁
+let justClickedResume = false;
+// 重试定时器变量
+let lockChangeRetryTimer = null;
+let lockRequestTimer = null;
+let lockErrorTimer = null;
+
+// 监听ESC键主动按下 - 在浏览器默认处理之前标记
+document.addEventListener('keydown', e=>{
+  if (e.code === 'Escape'){
+    userInitiatedUnlock = true;
+    // 重置标记，给后续的pointerlockchange使用
+    setTimeout(()=>{ userInitiatedUnlock = false; }, 800);
+  }
+}, true); // 捕获阶段，优先执行
+
+// 页面失焦/切换标签时也标记为非用户主动，避免误暂停
+window.addEventListener('blur', ()=>{
+  userInitiatedUnlock = false;
+});
+document.addEventListener('visibilitychange', ()=>{
+  if (document.hidden) userInitiatedUnlock = false;
+});
+
 document.addEventListener('pointerlockchange', ()=>{
   const locked = document.pointerLockElement === document.body;
+  const now = performance.now();
+  const timeSinceLockRequest = now - lastLockRequestTime;
+  
   if (!locked && G.started && !G.over){
+    // 修复QQ浏览器兼容问题：
+    // 1. 如果是刚请求锁定后的宽限期内解锁（浏览器短暂锁定又释放），不暂停
+    // 2. 如果不是用户主动按ESC触发的解锁，尝试重新锁定而不是暂停
+    // 3. 如果用户刚刚点击了继续按钮，优先重试锁定
+    // 4. 宽限期：LOCK_GRACE_PERIOD毫秒内的异常解锁忽略，自动重试锁定
+    if ((timeSinceLockRequest < LOCK_GRACE_PERIOD || justClickedResume) && !userInitiatedUnlock){
+      // QQ浏览器等可能出现短暂锁定后立即释放的情况，延迟重试锁定
+      // 不立即暂停，而是尝试重新获取指针锁
+      clearTimeout(lockChangeRetryTimer);
+      lockChangeRetryTimer = setTimeout(()=>{
+        justClickedResume = false;
+        if (document.pointerLockElement !== document.body && G.started && !G.over && !G.paused){
+          requestLock();
+        }
+      }, 150);
+      return;
+    }
+    
+    // 只有用户主动按ESC、或者多次重试后仍无法锁定，才真正暂停
+    justClickedResume = false;
     G.paused = true; G.running=false;
     player.ads=false; player.adsK=0; player.adsEase=0;
     UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
@@ -4803,27 +4871,66 @@ document.addEventListener('pointerlockchange', ()=>{
     UI.pause.classList.add('on');
     SFX.suspend();
   } else if (locked){
+    // 锁定成功，清除重试定时器和标记
+    clearTimeout(lockChangeRetryTimer);
+    clearTimeout(lockRequestTimer);
+    userInitiatedUnlock = false;
+    justClickedResume = false;
     G.paused = false;
     UI.pause.classList.remove('on');
     if (G.started && !G.over){ G.running = true; SFX.resume(); }
   }
 });
 function requestLock(){
+  lastLockRequestTime = performance.now();
   const p = document.body.requestPointerLock();
   if (p && p.catch) p.catch(()=>{});
   /* a denied request fires no pointerlockchange, which would leave the round
      live but with no mouse look. fall back to the pause overlay so a second
      click can try again. */
-  clearTimeout(requestLock._t);
-  requestLock._t = setTimeout(()=>{
+  clearTimeout(lockRequestTimer);
+  lockRequestTimer = setTimeout(()=>{
     if (document.pointerLockElement === document.body) return;
     if (!G.started || G.over) return;
-    G.paused = true; G.running = false;
-    UI.pause.classList.add('on');
-  }, 350);
+    // QQ浏览器修复：最多重试3次
+    if (!requestLock._retries) requestLock._retries = 0;
+    if (requestLock._retries < 3){
+      requestLock._retries++;
+      setTimeout(requestLock, 200);
+      return;
+    }
+    requestLock._retries = 0;
+    // 多次重试失败后，进入兼容模式：不强制暂停，允许鼠标点击拖拽游玩
+    // 这是为QQ浏览器等严格限制Pointer Lock的环境准备的兜底方案
+    console.warn('Pointer Lock多次请求失败，进入兼容模式');
+    G.paused = false;
+    G.running = true;
+    UI.pause.classList.remove('on');
+    SFX.resume();
+  }, 500); // 延长超时判断时间，从350ms到500ms
 }
+
+// 监听pointerlockerror错误（QQ浏览器等可能因安全策略阻止指针锁定）
+document.addEventListener('pointerlockerror', ()=>{
+  // 错误发生时延迟重试，而不是直接暂停
+  clearTimeout(lockErrorTimer);
+  lockErrorTimer = setTimeout(()=>{
+    if (G.started && !G.over && document.pointerLockElement !== document.body){
+      requestLock();
+    }
+  }, 300);
+});
 UI.startScreen.addEventListener('click', ()=>{ SFX.init(); startGame(); });
-UI.pause.addEventListener('click', ()=>{ SFX.init(); requestLock(); });
+UI.pause.addEventListener('click', ()=>{
+  SFX.init();
+  requestLock._retries = 0; // 重置重试计数器
+  userInitiatedUnlock = false; // 重置用户退出标记
+  justClickedResume = true; // 标记刚刚点击继续，优先重试
+  // 先临时移除暂停遮罩，避免遮罩阻挡后续事件
+  UI.pause.classList.remove('on');
+  G.running = true;
+  requestLock();
+});
 $('restartBtn').addEventListener('click', e=>{ e.stopPropagation(); restart(); });
 
 /* =========================================================================
@@ -6354,6 +6461,8 @@ function startGame(){
   UI.endScreen.classList.add('hide');
   UI.hud.classList.add('on');
   G.started=true; G.running=true; G.over=false;
+  requestLock._retries = 0; // 重置重试计数器
+  userInitiatedUnlock = false; // 重置用户退出标记
   requestLock();
 }
 function restart(){
