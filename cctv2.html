@@ -1,0 +1,495 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页遥控器 看电视</title>
+
+ <meta name="keywords" content="网页遥控器 看电视 电脑手机看电视 央视频道收藏夹">
+ <meta name="description" content="网页遥控器，电脑看电视，便民服务，优质网站，电视台列表选台，提供高效率的上网导航服务。">
+
+<!--百度统计以下-->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4245710b6a21f028e6f49d1d0f614080";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<!--百度统计以上-->
+
+
+<style>
+    /* 基础重置 - 兼容IE11 */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    html, body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        background-color: #0a1526; /* 深色背景 */
+        color: #e0e0e0;
+        line-height: 1.5;
+        height: 100%;
+    }
+    
+    /* 顶部导航条 - 固定定位 */
+    .top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #1a2332;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        border-bottom: 1px solid #2a3a5a;
+        /* 新增：文字不换行，防止自动换行 */
+        white-space: nowrap;
+        /* 统一导航栏字体大小 12px */
+        font-size: 12px;
+    }
+    
+    .logo {
+        /* logo 强制 12px，不换行 */
+        font-size: 12px;
+        font-weight: bold;
+        color: #4a9eff;
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+    
+    .nav-buttons {
+        display: flex;
+        /* 按钮不挤压换行 */
+        flex-shrink: 0;
+    }
+    
+    .nav-btn {
+        display: inline-block;
+        background-color: #2a3a5a;
+        color: #e0e0e0;
+        text-decoration: none;
+        padding: 8px 16px;
+        margin-right: 10px;
+        border-radius: 4px;
+        border: 1px solid #3a4a6a;
+        /* 继承父级 12px 字体，也可显式设置 */
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        /* 按钮文字不换行 */
+        white-space: nowrap;
+    }
+    
+    .nav-btn:hover {
+        background-color: #3a4a7a;
+        color: #ffffff;
+    }
+    
+    /* 主容器 - 考虑顶部导航高度 */
+    .container {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 80px 20px 40px;
+    }
+    
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #4a9eff;
+        font-size: 24px;
+    }
+    
+    /* 频道网格系统 */
+    .channels-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr); /* 默认电脑6列 */
+        gap: 15px; /* 使用兼容性更好的gap属性 */
+    }
+    
+    /* 手机端样式 - 通过JS添加类名控制 */
+    .mobile-mode .channels-grid {
+        grid-template-columns: repeat(3, 1fr); /* 手机3列 */
+    }
+
+    /* 手机端字体大小修改：英文12px，中文10px */
+    .mobile-mode .channel-name {
+        font-size: 12px !important; /* 英文/频道台标 */
+    }
+    .mobile-mode .channel-title {
+        font-size: 10px !important; /* 中文/频道名称 */
+    }
+    .mobile-mode .page-title {
+        font-size: 18px !important; /* 标题适配 */
+    }
+    
+    /* 频道模块样式 */
+    .channel-item {
+        background-color: #1a2332;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #2a3a5a;
+        transition: all 0.3s ease;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 15px 10px;
+        text-align: center;
+        opacity: 1;
+    }
+    
+    /* 隐藏状态的频道 */
+    .channel-item.hidden {
+        display: none;
+    }
+    
+    /* 不可点击状态 */
+    .channel-item.disabled {
+        opacity: 0.3;
+        pointer-events: none;
+        cursor: default;
+    }
+    
+    /* 鼠标悬停效果 - 简单兼容IE11 */
+    .channel-item:not(.disabled):hover {
+        background-color: #2a3a5a;
+        border-color: #4a9eff;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .channel-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: #4a9eff;
+        margin-bottom: 5px;
+    }
+    
+    .channel-title {
+        font-size: 14px;
+        color: #a0a0c0;
+    }
+    
+    /* 无频道提示 */
+    .no-channels {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        color: #888;
+    }
+    
+    /* 页脚 */
+    .footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 12px;
+        border-top: 1px solid #2a3a5a;
+        margin-top: 30px;
+    }
+    
+    /* 响应式调整 - 备用方案，主逻辑由JS控制 */
+    @media (max-width: 768px) {
+        /* 此媒体查询仅作为备用，实际设备判断由JS完成 */
+    }
+</style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="top-nav">
+        <div class="logo">选台</div>
+        <div class="nav-buttons">
+            <a href="https://tv.cctv.com/yxg/" class="nav-btn" target="_blank">片库</a>
+            <a href="https://csy506.github.io/aimp3.html" class="nav-btn" target="_blank">音乐</a>
+            <a href="https://csy506.github.io/ysso.html" class="nav-btn" target="_blank">搜索</a>
+            <a href="https://yusu.ysepan.com/" class="nav-btn" target="_blank">导航</a>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="container">
+        <h1 class="page-title">换台遥控器</h1>
+        
+        <div class="channels-grid" id="channelsContainer">
+            <!-- 频道将通过JS动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <div class="footer">
+        <p>本页为频道导航，不存储视频资源 | 所有播出内容版权归原电视台</p>
+    </div>
+
+    <script>
+        // 频道数据 (根据用户提供的数据整理)
+        var channelsData = [
+            { id: 0, channel: "全部选台", name: "数字选台", link: "https://csy506.github.io/cctv.html", timeRange: "0-24点", device: "电脑" },
+            { id: 1, channel: "CCTV1", name: "综合", link: "https://tv.cctv.com/live/cctv1/", timeRange: "0-11点,12-14点,17-24点", device: "电脑和手机" },
+            { id: 2, channel: "CCTV2", name: "财经", link: "https://tv.cctv.com/live/cctv2/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 3, channel: "CCTV3", name: "综艺", link: "https://tv.cctv.com/live/cctv3/", timeRange: "0-24点", device: "电脑" },
+            { id: 4, channel: "CCTV4", name: "中文国际亚洲", link: "https://tv.cctv.com/live/cctv4/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 5, channel: "CCTV5", name: "体育", link: "https://tv.cctv.com/live/cctv5/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 18, channel: "CCTV5+", name: "体育赛事", link: "https://tv.cctv.com/live/cctv5plus/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 6, channel: "CCTV6", name: "六影频道", link: "https://tv.cctv.com/live/cctv6/", timeRange: "0-15点,17-24点", device: "电脑" },
+            { id: 7, channel: "CCTV7", name: "国防军事", link: "https://tv.cctv.com/live/cctv7", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 8, channel: "CCTV8", name: "八剧频道", link: "https://tv.cctv.com/live/cctv8", timeRange: "0-12点,14-18点,20-24点", device: "电脑" },
+            { id: 9, channel: "CCTV9", name: "纪录", link: "https://tv.cctv.com/live/cctvjilu/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 10, channel: "CCTV10", name: "科教", link: "https://tv.cctv.com/live/cctv10", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 11, channel: "CCTV11", name: "戏曲", link: "https://tv.cctv.com/live/cctv11/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 12, channel: "CCTV12", name: "社会与法", link: "https://tv.cctv.com/live/cctv12/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 13, channel: "CCTV13", name: "新闻", link: "https://tv.cctv.com/live/cctv13/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 14, channel: "CCTV14", name: "少儿", link: "https://tv.cctv.com/live/cctvchild/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 15, channel: "CCTV15", name: "音乐", link: "https://tv.cctv.com/live/cctv15", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 16, channel: "CCTV16", name: "奥林匹克", link: "https://tv.cctv.com/live/cctv16/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 17, channel: "CCTV17", name: "农业农村", link: "https://tv.cctv.com/live/cctv17", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 20, channel: "CCTV4", name: "中文国际欧洲", link: "https://tv.cctv.com/live/cctveurope/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 21, channel: "CCTV4", name: "中文国际美洲", link: "https://tv.cctv.com/live/cctvamerica/", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 22, channel: "昨日新闻", name: "新闻联播", link: "https://www.xuexi.cn/8e35a343fca20ee32c79d67e35dfca90/7f9f27c65e84e71e1b7189b7132b4710.html", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 23, channel: "FM电台", name: "收音机", link: "https://www.xuexi.cn/8d78acea6fc231548255e16d4c1744dc/c62ee7980d4c97a980ad16be6667d7b8.html", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 26, channel: "BJTV", name: "北京台", link: "https://www.xuexi.cn/xxqg.html?id=b2e730bcb7e8468ea028135c602a561d", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 27, channel: "TJTV", name: "天津卫视", link: "https://www.xuexi.cn/xxqg.html?id=f34309e518fb41579c46cbef4d56c51d", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 33, channel: "ZSTV", name: "浙江卫视", link: "https://www.cztv.com/liveTV", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 34, channel: "SETV", name: "教育台", link: "https://www.setv.sh.cn/#/tvshow", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 35, channel: "JSTV", name: "江苏卫视", link: "https://fuwu.pages.dev/jstv.html", timeRange: "0-24点", device: "电脑和手机" },
+            { id: 41, channel: "SMG", name: "东方卫视", link: "https://live.kankanews.com/huikan/", timeRange: "0-24点", device: "电脑" },
+            { id: 42, channel: "SMG2", name: "新闻综合", link: "https://live.kankanews.com/huikan?id=2", timeRange: "0-24点", device: "电脑" },
+            { id: 43, channel: "SMG4", name: "都市频道", link: "https://live.kankanews.com/huikan?id=4", timeRange: "0-24点", device: "电脑" },
+            { id: 44, channel: "SMG9", name: "哈哈炫动", link: "https://live.kankanews.com/huikan?id=9", timeRange: "0-24点", device: "电脑" },
+            { id: 45, channel: "SMG12", name: "新纪实", link: "https://live.kankanews.com/huikan?id=12", timeRange: "0-24点", device: "电脑" },
+            { id: 46, channel: "GDTV", name: "广东卫视", link: "https://www.gdtv.cn/tvChannelDetail/43", timeRange: "0-24点", device: "电脑" },
+            { id: 47, channel: "HSTV", name: "湖南卫视", link: "https://www.mgtv.com/live/?_source_=D", timeRange: "0-24点", device: "电脑" },
+            { id: 48, channel: "SSTV", name: "深圳卫视", link: "https://www.sztv.com.cn/dianshi.shtml?id=7867", timeRange: "0-24点", device: "电脑" },
+            { id: 49, channel: "SDTV", name: "山东卫视", link: "https://v.iqilu.com/live/sdtv/", timeRange: "0-24点", device: "电脑" },
+            { id: 50, channel: "HLJ", name: "黑龙江卫视", link: "https://www.dbw.cn/zhibodan/zhibo_dan/hljws/", timeRange: "0-24点", device: "电脑" },
+        ];
+        
+        // 全局变量
+        var isMobileMode = false;
+        var currentHour = 0;
+        
+        // 主初始化函数
+        function init() {
+            // 1. 根据页面宽度判断设备类型（只在首次加载时判断）
+            detectDeviceType();
+            
+            // 2. 获取当前时间
+            updateCurrentTime();
+            
+            // 3. 渲染频道
+            renderChannels();
+            
+            // 4. 每分钟检查一次时间，更新频道状态
+            setInterval(function() {
+                updateCurrentTime();
+                updateChannelStatus();
+            }, 60000); // 每分钟更新一次
+        }
+        
+        // 检测设备类型
+        function detectDeviceType() {
+            var width = window.innerWidth || document.documentElement.clientWidth;
+            // 首次打开页面时判断，宽度小于768px为手机
+            isMobileMode = width < 768;
+            
+            // 添加对应的CSS类名
+            if (isMobileMode) {
+                document.body.className = 'mobile-mode';
+            } else {
+                document.body.className = '';
+            }
+            
+            console.log("设备模式: " + (isMobileMode ? "手机" : "电脑"));
+        }
+        
+        // 更新当前时间
+        function updateCurrentTime() {
+            var now = new Date();
+            currentHour = now.getHours();
+        }
+        
+        // 检查时间段是否匹配
+        function isInTimeRange(timeRange) {
+            if (!timeRange || timeRange === "0-24点") {
+                return true; // 全天显示
+            }
+            
+            var timeSegments = timeRange.split(',');
+            
+            for (var i = 0; i < timeSegments.length; i++) {
+                var segment = timeSegments[i].trim();
+                if (segment.indexOf('-') > -1) {
+                    var times = segment.split('-');
+                    var start = parseInt(times[0]);
+                    var end = parseInt(times[1].replace('点', ''));
+                    
+                    // 处理跨天时段
+                    if (start <= end) {
+                        // 正常时段，如1-6点
+                        if (currentHour >= start && currentHour < end) {
+                            return true;
+                        }
+                    } else {
+                        // 跨天时段，如17-1点
+                        if (currentHour >= start || currentHour < end) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        // 检查设备是否匹配
+        function isDeviceMatched(device) {
+            if (device === "电脑和手机") {
+                return true;
+            }
+            
+            if (isMobileMode && device === "手机") {
+                return true;
+            }
+            
+            if (!isMobileMode && device === "电脑") {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // 渲染频道
+        function renderChannels() {
+            var container = document.getElementById('channelsContainer');
+            container.innerHTML = '';
+            
+            var visibleChannels = 0;
+            
+            for (var i = 0; i < channelsData.length; i++) {
+                var channel = channelsData[i];
+                var isTimeMatch = isInTimeRange(channel.timeRange);
+                var isDeviceMatch = isDeviceMatched(channel.device);
+                
+                // 创建频道元素
+                var channelElement = document.createElement('div');
+                channelElement.className = 'channel-item';
+                channelElement.id = 'channel-' + channel.id;
+                
+                // 如果时间和设备都匹配，频道可显示
+                if (isTimeMatch && isDeviceMatch) {
+                    visibleChannels++;
+                    
+                    // 创建链接
+                    if (channel.link && channel.link !== '0' && channel.link !== '1/' && channel.link !== '2/' && channel.link !== '3/' && channel.link !== '5' && channel.link !== '6/' && channel.link !== '7') {
+                        channelElement.onclick = function(link) {
+                            return function() {
+                                window.open(link, '_blank');
+                            };
+                        }(channel.link);
+                        channelElement.style.cursor = 'pointer';
+                        channelElement.title = '点击观看 ' + channel.channel + ' ' + channel.name;
+                    } else {
+                        channelElement.className += ' disabled';
+                        channelElement.title = '暂无直播链接';
+                    }
+                    
+                    // 填充内容
+                    channelElement.innerHTML = 
+                        '<div class="channel-name">' + channel.channel + '</div>' +
+                        '<div class="channel-title">' + channel.name + '</div>';
+                } else {
+                    // 不满足显示条件，隐藏频道
+                    channelElement.className += ' hidden';
+                }
+                
+                container.appendChild(channelElement);
+            }
+            
+            // 如果没有可显示的频道
+            if (visibleChannels === 0) {
+                var noChannelElement = document.createElement('div');
+                noChannelElement.className = 'no-channels';
+                noChannelElement.innerHTML = '<p>当前时段暂无可用频道</p>';
+                container.appendChild(noChannelElement);
+            }
+        }
+        
+        // 更新频道状态
+        function updateChannelStatus() {
+            for (var i = 0; i < channelsData.length; i++) {
+                var channel = channelsData[i];
+                var element = document.getElementById('channel-' + channel.id);
+                
+                if (element) {
+                    var isTimeMatch = isInTimeRange(channel.timeRange);
+                    var isDeviceMatch = isDeviceMatched(channel.device);
+                    
+                    if (isTimeMatch && isDeviceMatch) {
+                        // 显示频道
+                        element.className = element.className.replace(' hidden', '');
+                        
+                        // 设置可点击状态
+                        if (channel.link && channel.link !== '0' && channel.link !== '1/' && channel.link !== '2/' && channel.link !== '3/' && channel.link !== '5' && channel.link !== '6/' && channel.link !== '7') {
+                            element.className = element.className.replace(' disabled', '');
+                            element.style.cursor = 'pointer';
+                            element.onclick = function(link) {
+                                return function() {
+                                    window.open(link, '_blank');
+                                };
+                            }(channel.link);
+                        } else {
+                            if (element.className.indexOf('disabled') === -1) {
+                                element.className += ' disabled';
+                            }
+                            element.style.cursor = 'default';
+                            element.onclick = null;
+                        }
+                    } else {
+                        // 隐藏频道
+                        if (element.className.indexOf('hidden') === -1) {
+                            element.className += ' hidden';
+                        }
+                    }
+                }
+            }
+            
+            // 检查是否还有可见频道
+            var visibleChannels = document.querySelectorAll('.channel-item:not(.hidden)').length;
+            var noChannelElement = document.querySelector('.no-channels');
+            
+            if (visibleChannels === 0 && !noChannelElement) {
+                var container = document.getElementById('channelsContainer');
+                noChannelElement = document.createElement('div');
+                noChannelElement.className = 'no-channels';
+                noChannelElement.innerHTML = '<p>当前时段暂无可用频道</p>';
+                container.appendChild(noChannelElement);
+            } else if (visibleChannels > 0 && noChannelElement) {
+                noChannelElement.remove();
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // 添加IE11兼容的classList.replace方法
+        if (!("classList" in document.documentElement) || 
+            !document.documentElement.classList.replace) {
+            DOMTokenList.prototype.replace = function(oldToken, newToken) {
+                if (this.contains(oldToken)) {
+                    this.remove(oldToken);
+                    this.add(newToken);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
