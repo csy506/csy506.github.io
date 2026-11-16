@@ -1,0 +1,862 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>看电视</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border-radius: 50px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            user-select: auto;
+            -webkit-user-select: auto;
+            -moz-user-select: auto;
+            -ms-user-select: auto;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0a0c0;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            font-size: 1.2rem;
+            z-index: 10;
+        }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .channel-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .channel-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .channel-card:active {
+            transform: translateY(-2px);
+        }
+        
+        .channel-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .channel-name {
+            font-size: 0.95rem;
+            color: #e0e0ff;
+            font-weight: 500;
+            line-height: 1.4;
+            word-break: break-word;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #c0c0e0;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            color: white;
+        }
+        
+        .no-results {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 40px;
+            color: #a0a0c0;
+            font-size: 1.1rem;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .no-results i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #4361ee;
+        }
+        
+        /* 响应式设计 - 主要修复点 */
+        @media (max-width: 768px) {
+            .channels-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 15px;
+            }
+            
+            .channel-card {
+                padding: 15px 10px;
+            }
+            
+            /* 重点修复：确保在移动端双栏布局时数字垂直居中 */
+            .channel-number {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-bottom: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .channels-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 12px;
+            }
+            
+            /* 修复小屏幕下的数字对齐问题 */
+            .channel-number {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+            
+            .channel-name {
+                font-size: 0.85rem;
+            }
+            
+            .search-box {
+                padding: 12px 15px 12px 45px;
+                font-size: 0.95rem;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .channel-card {
+            animation: fadeIn 0.3s ease forwards;
+            opacity: 0;
+        }
+        
+        /* 为不同频道组添加不同的颜色标识 */
+        .channel-card[data-group="央视"] .channel-number {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+        
+        .channel-card[data-group="卫视"] .channel-number {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        }
+        
+        .channel-card[data-group="地方"] .channel-number {
+            background: linear-gradient(135deg, #4cc9f0, #4895ef);
+        }
+        
+        .channel-card[data-group="最近观看"] .channel-number {
+            background: linear-gradient(135deg, #7209b7, #560bad);
+        }
+        
+        /* 最近观看标记样式 */
+        .recent-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #7209b7, #560bad);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        /* 添加加载动画 */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #a0a0c0;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4361ee;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 数字输入提示样式 */
+        .input-hint {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(67, 97, 238, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .input-hint.show {
+            display: flex;
+        }
+        
+        .input-hint .number {
+            background: white;
+            color: #4361ee;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .input-hint .timer {
+            width: 30px;
+            height: 30px;
+            border: 3px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-box" id="searchInput" placeholder="搜索频道名称或编号...">
+        </div>
+        
+        <div class="controls">
+            <button class="filter-btn active" data-filter="all">全部频道</button>
+            <button class="filter-btn" data-filter="卫视">卫视频道</button>
+            <button class="filter-btn" data-filter="地方">地方频道</button>
+            <button class="filter-btn" data-filter="央视">央视频道</button>
+            <button class="filter-btn" data-filter="最近观看">最近观看</button>
+        </div>
+        
+        <div class="channels-grid" id="channelsContainer">
+            <!-- 频道按钮将通过JavaScript动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 数字输入提示 -->
+    <div class="input-hint" id="inputHint">
+        <span class="number" id="inputNumber">0</span>
+        <span>将在 <span id="countdown">2</span> 秒后打开</span>
+        <div class="timer"></div>
+    </div>
+
+    <script>
+        // URL前缀定义
+        const yangshipinPrefix = "https://www.yangshipin.cn/tv/home?pid=";
+        const kankanewsPrefix = "https://live.kankanews.com/huikan?id=";
+        
+        // 电视频道数据 - 根据新数据更新
+        const channels = [
+            // CCTV部分 - 主要使用央视频道前缀
+            { id: 1, name: "CCTV-1 综合", group: "央视", pid: "600001859" },
+            { id: 2, name: "CCTV-2 财经", group: "央视", pid: "600001800" },
+            { id: 3, name: "CCTV-3 综艺", group: "央视", pid: "600001801" },
+            { id: 4, name: "CCTV-4 中文国际", group: "央视", pid: "600001814" },
+            { id: 5, name: "CCTV-5 体育", group: "央视", pid: "600001818" },
+            { id: 6, name: "CCTV-6 电影", group: "央视", pid: "600108442" },
+            { id: 7, name: "CCTV-7 国防赛事", group: "央视", pid: "600004092" },
+            { id: 8, name: "CCTV-8 电视剧", group: "央视", pid: "600001803" },
+            { id: 9, name: "CCTV-9 纪录", group: "央视", pid: "600004078" },
+            { id: 10, name: "CCTV-10 科教", group: "央视", pid: "600001805" },
+            { id: 11, name: "CCTV-11 戏曲", group: "央视", pid: "600001806" },
+            { id: 12, name: "CCTV-12 社会与法", group: "央视", pid: "600001807" },
+            { id: 13, name: "CCTV-13 新闻", group: "央视", pid: "600001811" },
+            { id: 14, name: "CCTV-14 少儿", group: "央视", pid: "600001809" },
+            { id: 15, name: "CCTV-15 音乐", group: "央视", pid: "600001815" },
+            { id: 16, name: "CCTV-16 奥林匹克", group: "央视", pid: "600098637" },
+            { id: 17, name: "CCTV-17 农业农村", group: "央视", pid: "600001810" },
+            { id: 18, name: "CCTV-4 欧洲", group: "央视", url: "https://tv.cctv.com/live/cctveurope/" },
+            { id: 19, name: "CCTV-4 美国", group: "央视", url: "https://tv.cctv.com/live/cctvamerica/" },
+            { id: 20, name: "CCTV-5+ 体育赛事", group: "央视", url: "https://tv.cctv.com/live/cctv5plus/" },
+            { id: 21, name: "CCTV-4K 超高清", group: "央视", pid: "600002264" },
+            { id: 22, name: "CCTV-8K 超高清", group: "央视", pid: "600156816" },
+            { id: 23, name: "CGTN台", group: "央视", pid: "600014550" },
+            
+            // 单独链接部分 - 修改为使用kankanews前缀
+            { id: 24, name: "新闻综合", group: "地方", kankanewsId: "2" },
+            { id: 25, name: "教育电视台", group: "地方", url: "https://www.setv.sh.cn/#/tvshow" },
+            { id: 26, name: "都市频道", group: "地方", kankanewsId: "4" },
+            { id: 27, name: "哈哈炫动", group: "地方", kankanewsId: "9" },
+            { id: 28, name: "新纪实", group: "地方", kankanewsId: "12" },
+            
+            // 卫视频道部分
+            { id: 29, name: "东方卫视", group: "卫视", pid: "600002483" },
+            { id: 30, name: "北京卫视", group: "卫视", pid: "600002309" },
+            { id: 31, name: "江苏卫视", group: "卫视", pid: "600002521" },
+            { id: 32, name: "浙江卫视", group: "卫视", pid: "600002520" },
+            { id: 33, name: "湖南卫视", group: "卫视", pid: "600002475" },
+            { id: 34, name: "湖北卫视", group: "卫视", pid: "600002508" },
+            { id: 35, name: "广东卫视", group: "卫视", pid: "600002485" },
+            { id: 36, name: "广西卫视", group: "卫视", pid: "600002509" },
+            { id: 37, name: "黑龙江卫视", group: "卫视", pid: "600002498" },
+            { id: 38, name: "海南卫视", group: "卫视", pid: "600002506" },
+            { id: 39, name: "重庆卫视", group: "卫视", pid: "600002531" },
+            { id: 40, name: "深圳卫视", group: "卫视", pid: "600002481" },
+            { id: 41, name: "四川卫视", group: "卫视", pid: "600002516" },
+            { id: 42, name: "河南卫视", group: "卫视", pid: "600002525" },
+            { id: 43, name: "东南卫视", group: "卫视", pid: "600002484" },
+            { id: 44, name: "贵州卫视", group: "卫视", pid: "600002490" },
+            { id: 45, name: "江西卫视", group: "卫视", pid: "600002503" },
+            { id: 46, name: "辽宁卫视", group: "卫视", pid: "600002505" },
+            { id: 47, name: "安徽卫视", group: "卫视", pid: "600002532" },
+            { id: 48, name: "河北卫视", group: "卫视", pid: "600002493" },
+            { id: 49, name: "山东卫视", group: "卫视", pid: "600002513" },
+            { id: 50, name: "天津卫视", group: "卫视", pid: "600152137" },
+            { id: 51, name: "吉林卫视", group: "卫视", pid: "600190405" },
+            { id: 52, name: "陕西卫视", group: "卫视", pid: "600190400" },
+            { id: 53, name: "宁夏卫视", group: "卫视", pid: "600190737" },
+            { id: 54, name: "内蒙古卫视", group: "卫视", pid: "600190401" },
+            { id: 55, name: "云南卫视", group: "卫视", pid: "600190402" },
+            { id: 56, name: "山西卫视", group: "卫视", pid: "600190407" },
+            { id: 57, name: "青海卫视", group: "卫视", pid: "600190406" },
+            { id: 58, name: "西藏卫视", group: "卫视", pid: "600190403" },
+            { id: 59, name: "CETV1卫视", group: "卫视", pid: "600171827" },
+            { id: 60, name: "新疆卫视", group: "卫视", pid: "600152138" },
+            { id: 61, name: "影片库", group: "地方", url: "https://tv.cctv.com/yxg/" }
+        ];
+        
+        // DOM元素
+        const channelsContainer = document.getElementById('channelsContainer');
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const inputHint = document.getElementById('inputHint');
+        const inputNumber = document.getElementById('inputNumber');
+        const countdownElement = document.getElementById('countdown');
+        
+        // 当前筛选条件
+        let currentFilter = 'all';
+        let currentSearch = '';
+        
+        // 数字输入相关变量
+        let numberInput = '';
+        let inputTimer = null;
+        let countdown = 2;
+        let countdownInterval = null;
+        
+        // 最近观看的频道ID列表
+        let recentChannels = [];
+        
+        // 从localStorage加载最近观看的频道
+        function loadRecentChannels() {
+            try {
+                const saved = localStorage.getItem('tv_recent_channels');
+                if (saved) {
+                    recentChannels = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('加载最近观看记录失败:', e);
+                recentChannels = [];
+            }
+        }
+        
+        // 保存最近观看的频道到localStorage
+        function saveRecentChannels() {
+            try {
+                localStorage.setItem('tv_recent_channels', JSON.stringify(recentChannels));
+            } catch (e) {
+                console.error('保存最近观看记录失败:', e);
+            }
+        }
+        
+        // 添加频道到最近观看列表
+        function addToRecentChannels(channelId) {
+            // 移除已存在的相同频道
+            recentChannels = recentChannels.filter(id => id !== channelId);
+            
+            // 添加到列表开头
+            recentChannels.unshift(channelId);
+            
+            // 限制只保留最近4个
+            if (recentChannels.length > 4) {
+                recentChannels = recentChannels.slice(0, 4);
+            }
+            
+            // 保存到localStorage
+            saveRecentChannels();
+            
+            // 如果当前正在查看最近观看列表，则重新渲染
+            if (currentFilter === '最近观看') {
+                renderChannels();
+            }
+        }
+        
+        // 显示加载状态
+        function showLoading() {
+            channelsContainer.innerHTML = `
+                <div class="loading" style="grid-column: 1 / -1;">
+                    <div class="loading-spinner"></div>
+                    <p>正在加载频道...</p>
+                </div>
+            `;
+        }
+        
+        // 生成频道URL
+        function generateChannelUrl(channel) {
+            if (channel.url) {
+                // 如果已有完整URL，直接使用
+                return channel.url;
+            } else if (channel.kankanewsId) {
+                // 如果是kankanews频道，使用kankanews前缀+id
+                return kankanewsPrefix + channel.kankanewsId;
+            } else if (channel.pid) {
+                // 如果是央视频道，使用统一前缀+pid
+                return yangshipinPrefix + channel.pid;
+            }
+            return "#";
+        }
+        
+        // 创建频道名称HTML
+        function createChannelNameHtml(channelName) {
+            // 处理CCTV频道：将空格替换为<br>
+            if (channelName.toUpperCase().startsWith('CCTV-')) {
+                // 将第一个空格替换为<br>，如果有多个空格，只替换第一个
+                const firstSpaceIndex = channelName.indexOf(' ');
+                if (firstSpaceIndex !== -1) {
+                    const part1 = channelName.substring(0, firstSpaceIndex);
+                    const part2 = channelName.substring(firstSpaceIndex + 1);
+                    return `<div class="channel-name">${part1}<br>${part2}</div>`;
+                }
+            }
+            
+            // 普通频道名称
+            return `<div class="channel-name">${channelName}</div>`;
+        }
+        
+        // 初始化频道显示
+        function renderChannels() {
+            channelsContainer.innerHTML = '';
+            
+            let filteredChannels = [];
+            
+            if (currentFilter === '最近观看') {
+                // 显示最近观看的频道
+                filteredChannels = recentChannels
+                    .map(id => channels.find(c => c.id === id))
+                    .filter(channel => channel !== undefined);
+                
+                // 如果没有最近观看的频道，显示提示
+                if (filteredChannels.length === 0) {
+                    channelsContainer.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-history"></i>
+                            <p>暂无最近观看的频道</p>
+                            <p>点击任意频道开始记录观看历史</p>
+                        </div>
+                    `;
+                    return;
+                }
+            } else {
+                // 其他筛选条件
+                filteredChannels = channels.filter(channel => {
+                    // 应用筛选器
+                    if (currentFilter !== 'all' && channel.group !== currentFilter) {
+                        return false;
+                    }
+                    
+                    // 应用搜索
+                    if (currentSearch) {
+                        const searchLower = currentSearch.toLowerCase();
+                        return channel.name.toLowerCase().includes(searchLower) || 
+                               channel.id.toString().includes(currentSearch);
+                    }
+                    
+                    return true;
+                });
+            }
+            
+            if (filteredChannels.length === 0) {
+                channelsContainer.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>未找到匹配频道</p>
+                        <p>请尝试其他搜索词或筛选</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 为每个频道创建卡片
+            filteredChannels.forEach(channel => {
+                const card = document.createElement('div');
+                card.className = 'channel-card';
+                card.setAttribute('data-group', currentFilter === '最近观看' ? '最近观看' : channel.group);
+                card.setAttribute('data-id', channel.id);
+                
+                // 设置延迟动画
+                card.style.animationDelay = `${filteredChannels.indexOf(channel) * 0.03}s`;
+                
+                // 生成URL
+                const channelUrl = generateChannelUrl(channel);
+                
+                // 创建频道名称HTML
+                const channelNameHtml = createChannelNameHtml(channel.name);
+                
+                // 检查是否是最近观看的频道
+                const isRecent = recentChannels.includes(channel.id);
+                const recentIndex = recentChannels.indexOf(channel.id);
+                const recentBadge = isRecent && currentFilter !== '最近观看' ? 
+                    `<div class="recent-badge">最近${recentIndex + 1}</div>` : '';
+                
+                card.innerHTML = `
+                    <div class="channel-number">${channel.id}</div>
+                    ${channelNameHtml}
+                    ${recentBadge}
+                `;
+                
+                // 添加点击事件 - 在新标签页中打开链接
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // 添加到最近观看列表
+                    addToRecentChannels(channel.id);
+                    // 打开频道
+                    window.open(channelUrl, '_blank');
+                });
+                
+                channelsContainer.appendChild(card);
+            });
+        }
+        
+        // 搜索功能
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value.trim();
+            renderChannels();
+        });
+        
+        // 添加回车键搜索功能
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                // 阻止默认行为（可能触发表单提交）
+                e.preventDefault();
+                // 执行搜索（虽然input事件已经触发了，但这里可以确保搜索执行）
+                currentSearch = e.target.value.trim();
+                renderChannels();
+            }
+        });
+        
+        // 筛选功能
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // 更新活动按钮
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // 更新筛选条件
+                currentFilter = button.getAttribute('data-filter');
+                renderChannels();
+            });
+        });
+        
+        // 显示数字输入提示
+        function showInputHint() {
+            inputNumber.textContent = numberInput;
+            countdownElement.textContent = countdown;
+            inputHint.classList.add('show');
+        }
+        
+        // 隐藏数字输入提示
+        function hideInputHint() {
+            inputHint.classList.remove('show');
+            clearInterval(countdownInterval);
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdown = 2;
+            countdownElement.textContent = countdown;
+            
+            clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    openChannelByNumber();
+                }
+            }, 1000);
+        }
+        
+        // 根据输入的数字打开频道
+        function openChannelByNumber() {
+            const channelId = parseInt(numberInput);
+            const channel = channels.find(c => c.id === channelId);
+            
+            if (channel) {
+                // 添加到最近观看列表
+                addToRecentChannels(channel.id);
+                const channelUrl = generateChannelUrl(channel);
+                window.open(channelUrl, '_blank');
+            }
+            
+            // 重置输入状态
+            numberInput = '';
+            hideInputHint();
+        }
+        
+        // 处理数字输入
+        function handleNumberInput(key) {
+            // 如果当前焦点在搜索框，不处理数字输入
+            if (document.activeElement === searchInput) {
+                return;
+            }
+            
+            // 添加到输入字符串
+            numberInput += key;
+            
+            // 显示输入提示
+            showInputHint();
+            
+            // 清除之前的计时器
+            clearTimeout(inputTimer);
+            clearInterval(countdownInterval);
+            
+            // 如果输入了两位数字，立即打开
+            if (numberInput.length === 2) {
+                const channelId = parseInt(numberInput);
+                const channel = channels.find(c => c.id === channelId);
+                
+                if (channel) {
+                    // 添加到最近观看列表
+                    addToRecentChannels(channel.id);
+                    const channelUrl = generateChannelUrl(channel);
+                    window.open(channelUrl, '_blank');
+                    
+                    // 重置输入状态
+                    numberInput = '';
+                    hideInputHint();
+                    return;
+                }
+            }
+            
+            // 如果输入了超过两位数字，只取前两位
+            if (numberInput.length > 2) {
+                numberInput = numberInput.slice(0, 2);
+                inputNumber.textContent = numberInput;
+            }
+            
+            // 重新开始倒计时
+            startCountdown();
+            
+            // 设置2秒后自动打开
+            inputTimer = setTimeout(() => {
+                openChannelByNumber();
+            }, 2000);
+        }
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', (e) => {
+            // 如果焦点在搜索框内，只处理ESC键
+            if (document.activeElement === searchInput) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    currentSearch = '';
+                    renderChannels();
+                    
+                    // 同时清除数字输入
+                    numberInput = '';
+                    hideInputHint();
+                }
+                return;
+            }
+            
+            // 按下ESC键清空搜索框和数字输入
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                currentSearch = '';
+                renderChannels();
+                
+                // 清除数字输入
+                numberInput = '';
+                hideInputHint();
+                return;
+            }
+            
+            // 处理数字键输入
+            if (e.key >= '0' && e.key <= '9') {
+                // 如果输入0并且当前没有输入，忽略（因为频道ID从1开始）
+                if (e.key === '0' && numberInput === '') {
+                    return;
+                }
+                
+                handleNumberInput(e.key);
+                return;
+            }
+            
+            // 处理退格键 - 删除最后一位数字
+            if (e.key === 'Backspace' && numberInput.length > 0) {
+                numberInput = numberInput.slice(0, -1);
+                
+                if (numberInput.length === 0) {
+                    hideInputHint();
+                } else {
+                    inputNumber.textContent = numberInput;
+                    // 重置计时器
+                    clearTimeout(inputTimer);
+                    clearInterval(countdownInterval);
+                    startCountdown();
+                    
+                    inputTimer = setTimeout(() => {
+                        openChannelByNumber();
+                    }, 2000);
+                }
+                return;
+            }
+        });
+        
+        // 添加响应式调整
+        window.addEventListener('resize', () => {
+            // 可以根据窗口大小调整布局
+            const container = document.querySelector('.channels-grid');
+            if (window.innerWidth < 480) {
+                container.style.gap = '10px';
+            } else {
+                container.style.gap = '20px';
+            }
+        });
+        
+        // 初始加载最近观看记录
+        loadRecentChannels();
+        
+        // 初始渲染
+        showLoading();
+        // 模拟加载延迟
+        setTimeout(() => {
+            renderChannels();
+        }, 500);
+    </script>
+</body>
+</html>
