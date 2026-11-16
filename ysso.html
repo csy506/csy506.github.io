@@ -1,0 +1,794 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玉树影视E盘-搜索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e6e6e6;
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(30, 30, 46, 0.85);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .search-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .search-title {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .search-subtitle {
+            font-size: 1.1rem;
+            color: #b0b0d0;
+            margin-bottom: 5px;
+        }
+        
+        .search-engine-selector {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px; /* 修改：上边距改为25px */
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .engine-option {
+            flex: 1;
+            min-width: 120px;
+            max-width: 180px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+        }
+        
+        .engine-option:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-3px);
+        }
+        
+        .engine-option.active {
+            background: rgba(67, 97, 238, 0.2);
+            border-color: #4361ee;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .engine-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .movie-icon {
+            background: linear-gradient(90deg, #f72585, #3a0ca3);
+            color: white;
+        }
+        
+        .bing-icon {
+            background: #008373;
+            color: white;
+        }
+        
+        .baidu-icon {
+            background: #2932e1;
+            color: white;
+        }
+        
+        .yandex-icon {
+            background: #ff0000;
+            color: white;
+        }
+        
+        .search-box-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .search-input-wrapper {
+            display: flex;
+            width: 100%;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 18px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 15px 0 0 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+        
+        .search-input::placeholder {
+            color: #a0a0c0;
+        }
+        
+        .search-button {
+            padding: 0 30px;
+            background: linear-gradient(90deg, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            border-radius: 0 15px 15px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-button:hover {
+            background: linear-gradient(90deg, #3a56d4, #2f0a8a);
+            transform: translateY(-2px);
+        }
+        
+        .search-button:active {
+            transform: translateY(0);
+        }
+        
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        
+        .suggestions-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(40, 40, 60, 0.95);
+            border-radius: 0 0 15px 15px;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .suggestion-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #d0d0e8;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item:hover {
+            background: rgba(67, 97, 238, 0.2);
+            color: white;
+        }
+        
+        .search-tips {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: #b0b0d0;
+        }
+        
+        .tip-title {
+            color: #4cc9f0;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .tip-list {
+            padding-left: 20px;
+        }
+        
+        .tip-list li {
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #8888aa;
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式设计 - 平板电脑 */
+        @media (max-width: 768px) {
+            .search-container {
+                padding: 20px;
+                border-radius: 15px;
+                max-width: 90%;
+            }
+            
+            .search-title {
+                font-size: 2rem;
+            }
+            
+            .search-input {
+                padding: 15px;
+                font-size: 1rem;
+            }
+            
+            .search-button {
+                padding: 0 20px;
+            }
+            
+            .engine-option {
+                padding: 10px 15px;
+                min-width: 110px;
+            }
+        }
+        
+        /* 响应式设计 - 手机端 */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+            
+            .search-container {
+                width: 100%;
+                max-width: 100%;
+                padding: 20px 15px;
+                border-radius: 0;
+                box-shadow: none;
+                backdrop-filter: none;
+                border: none;
+                background: none;
+                margin: 0;
+                min-height: 100vh;
+            }
+            
+            /* 关键优化：手机端搜索框和按钮覆盖布局 */
+            .search-box-container {
+                position: relative;
+                width: 100%;
+            }
+            
+            .search-input-wrapper {
+                width: 100%;
+                position: relative;
+            }
+            
+            /* 搜索框宽度100% */
+            .search-input {
+                width: 100%;
+                border-radius: 12px; /* 恢复完整圆角 */
+                padding: 16px 70px 16px 15px; /* 右侧留出按钮空间 */
+                font-size: 1rem;
+                box-sizing: border-box;
+            }
+            
+            /* 搜索按钮绝对定位覆盖在搜索框右侧 */
+            .search-button {
+                position: absolute;
+                right: 0;
+                top: 0;
+                height: 100%; /* 和搜索框等高 */
+                width: 60px; /* 固定宽度 */
+                padding: 0;
+                border-radius: 0 12px 12px 0; /* 只有右侧有圆角 */
+                background: linear-gradient(90deg, #4361ee, #3a0ca3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                cursor: pointer;
+                z-index: 10; /* 确保按钮在搜索框上方 */
+            }
+            
+            .search-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            /* 手机端搜索选项布局 */
+            .search-engine-selector {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-top: 20px; /* 调整上边距 */
+            }
+            
+            .engine-option {
+                width: 100%;
+                max-width: 100%;
+                min-width: auto;
+                padding: 10px 8px;
+                margin: 0;
+                flex-direction: row; /* 改为水平布局 */
+                justify-content: flex-start; /* 左对齐 */
+                text-align: left;
+                overflow: hidden; /* 防止内容溢出 */
+            }
+            
+            /* 小标志和文字在同一行 */
+            .engine-icon {
+                margin-right: 8px;
+                margin-bottom: 0; /* 移除垂直布局时的下边距 */
+                flex-shrink: 0;
+            }
+            
+            /* 搜索选项文字样式 */
+            .engine-option span {
+                white-space: nowrap; /* 防止文字换行 */
+                overflow: hidden;
+                text-overflow: ellipsis; /* 文字过长时显示省略号 */
+                font-size: 0.9rem;
+            }
+            
+            .search-header {
+                margin-bottom: 20px;
+            }
+            
+            .search-title {
+                font-size: 2rem;
+            }
+            
+            .search-subtitle {
+                font-size: 1rem;
+            }
+            
+            .search-tips {
+                margin-top: 20px;
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+            
+            .footer {
+                margin-top: 20px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕手机优化 */
+        @media (max-width: 360px) {
+            .search-container {
+                padding: 15px 10px;
+            }
+            
+            .search-title {
+                font-size: 1.8rem;
+            }
+            
+            .search-subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .search-engine-selector {
+                gap: 8px;
+            }
+            
+            /* 超小屏幕：隐藏小标志，只显示文字 */
+            .engine-option {
+                padding: 8px 5px;
+                font-size: 0.9rem;
+                justify-content: center; /* 居中显示 */
+            }
+            
+            .engine-icon {
+                display: none; /* 隐藏小标志 */
+            }
+            
+            .engine-option span {
+                font-size: 0.85rem;
+            }
+            
+            /* 超小屏幕调整按钮宽度和搜索框内边距 */
+            .search-input {
+                padding: 16px 55px 16px 12px; /* 调整右侧内边距 */
+                font-size: 0.95rem;
+            }
+            
+            .search-button {
+                width: 50px; /* 超小屏幕按钮稍窄 */
+            }
+            
+            .search-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        /* 小屏幕手机优化（宽度在361px-400px之间） */
+        @media (min-width: 361px) and (max-width: 400px) {
+            /* 在小屏幕上，如果按钮宽度不足，隐藏小标志 */
+            .engine-option {
+                padding: 8px 6px;
+            }
+            
+            .engine-icon {
+                display: none; /* 隐藏小标志 */
+            }
+            
+            .engine-option span {
+                font-size: 0.88rem;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="search-header">
+            <h1 class="search-title">玉树影视e盘</h1>
+            <p class="search-subtitle">yusu.ysepan.com</p>
+        </div>
+        
+        <!-- 修改：搜索框和搜索按钮放在搜索选项上面 -->
+        <div class="search-box-container">
+            <div class="search-input-wrapper">
+                <input type="text" class="search-input" id="searchInput" placeholder="输入影片名、导演演员..." autocomplete="off">
+                <button class="search-button" id="searchButton">
+                    <svg class="search-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="suggestions-container" id="suggestionsContainer"></div>
+        </div>
+        
+        <!-- 修改：搜索选项放在搜索框下面，调整Yandex和Bing的顺序 -->
+        <div class="search-engine-selector">
+            <div class="engine-option active" data-engine="nsvod">
+                <div class="engine-icon movie-icon">影</div>
+                <span>影视</span>
+            </div>
+            <div class="engine-option" data-engine="yandex">
+                <div class="engine-icon yandex-icon">Y</div>
+                <span>Yandex</span>
+            </div>
+            <div class="engine-option" data-engine="bing">
+                <div class="engine-icon bing-icon">B</div>
+                <span>Bing</span>
+            </div>
+            <div class="engine-option" data-engine="baidu">
+                <div class="engine-icon baidu-icon">百</div>
+                <span>百度</span>
+            </div>
+        </div>
+        
+        <div class="search-tips">
+            <div class="tip-title">搜索提示：</div>
+            <ul class="tip-list">
+                <li>输入影片名 导演名或演员</li>
+                <li>搜索不储存 不记录数据</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            通用影视搜索 | 支持联想词易搜 | 影片名搜索 | 集中搜索
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 元素引用
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+            const engineOptions = document.querySelectorAll('.engine-option');
+            
+            // 当前选中的搜索引擎
+            let currentEngine = 'nsvod';
+            // 防抖计时器
+            let debounceTimer;
+            // 当前联想词请求的ID（用于防止旧请求覆盖新请求）
+            let currentRequestId = 0;
+            
+            // 搜索引擎配置
+            const engines = {
+                nsvod: {
+                    name: '影视搜索',
+                    searchUrl: 'https://fitcome.com/vod/search/',
+                    placeholder: '输入影片名、演员或导演...'
+                },
+                bing: {
+                    name: 'Bing搜索',
+                    searchUrl: 'https://www.bing.com/search?q=',
+                    placeholder: '输入影片名、演员或导演...'
+                },
+                yandex: {
+                    name: 'Yandex搜索',
+                    searchUrl: 'https://yandex.tm/search/?text=',
+                    placeholder: '请输入影片名、演员或导演...'
+                },
+                baidu: {
+                    name: '百度搜索',
+                    searchUrl: 'https://www.baidu.com/s?wd=',
+                    placeholder: '输入影片名、演员或导演...'
+                }
+            };
+            
+            // 百度搜索联想接口配置
+            const baiduSuggestionsConfig = {
+                url: 'https://www.baidu.com/su?wd=',
+                param: '&cb=handleBaiduSuggestions'
+            };
+            
+            // 切换搜索引擎
+            engineOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 更新UI
+                    engineOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新当前搜索引擎
+                    currentEngine = this.getAttribute('data-engine');
+                    
+                    // 更新搜索框placeholder
+                    searchInput.placeholder = engines[currentEngine].placeholder;
+                    
+                    // 如果搜索框有内容，重新获取联想
+                    if (searchInput.value.trim()) {
+                        fetchBaiduSuggestions(searchInput.value.trim());
+                    }
+                });
+            });
+            
+            // 监听搜索框输入
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // 清空之前的防抖计时器
+                clearTimeout(debounceTimer);
+                
+                // 如果查询为空，清空联想
+                if (!query) {
+                    clearSuggestions();
+                    return;
+                }
+                
+                // 防抖处理：用户停止输入300ms后再请求联想词
+                debounceTimer = setTimeout(() => {
+                    fetchBaiduSuggestions(query);
+                }, 300);
+            });
+            
+            // 监听键盘事件
+            searchInput.addEventListener('keydown', function(e) {
+                // 如果按下回车键，执行搜索
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+                
+                // 如果按下Esc键，清空联想
+                if (e.key === 'Escape') {
+                    clearSuggestions();
+                }
+                
+                // 如果按下向下箭头键，聚焦第一个联想项
+                if (e.key === 'ArrowDown' && suggestionsContainer.children.length > 0) {
+                    e.preventDefault();
+                    suggestionsContainer.children[0].focus();
+                }
+            });
+            
+            // 搜索按钮点击事件
+            searchButton.addEventListener('click', performSearch);
+            
+            // 执行搜索
+            function performSearch() {
+                const query = searchInput.value.trim();
+                
+                if (!query) {
+                    searchInput.focus();
+                    return;
+                }
+                
+                // 构建搜索URL
+                let searchUrl = '';
+                if (currentEngine === 'nsvod') {
+                    // 影视搜索 - 直接使用用户提供的链接
+                    searchUrl = engines.nsvod.searchUrl + encodeURIComponent(query);
+                } else {
+                    // 其他搜索引擎 - 添加不同的后缀词
+                    let suffix = ' 在线观看'; // 默认后缀
+                    if (currentEngine === 'yandex') {
+                        // Yandex搜索使用"港剧网"后缀
+                        suffix = ' 在线观看';
+                    }
+                    searchUrl = engines[currentEngine].searchUrl + encodeURIComponent(query + suffix);
+                }
+                
+                // 在新标签页打开搜索结果
+                window.open(searchUrl, '_blank');
+                
+                // 清空联想
+                clearSuggestions();
+            }
+            
+            // 获取百度搜索联想
+            function fetchBaiduSuggestions(query) {
+                // 增加请求ID
+                const requestId = ++currentRequestId;
+                
+                // 创建JSONP回调函数
+                window.handleBaiduSuggestions = function(data) {
+                    // 确保这是最新的请求
+                    if (requestId !== currentRequestId) return;
+                    
+                    // 解析百度返回的数据
+                    if (data && data.s && data.s.length > 0) {
+                        displaySuggestions(data.s);
+                    } else {
+                        clearSuggestions();
+                    }
+                };
+                
+                // 创建JSONP脚本
+                const script = document.createElement('script');
+                script.src = baiduSuggestionsConfig.url + encodeURIComponent(query) + baiduSuggestionsConfig.param;
+                document.head.appendChild(script);
+                
+                // 脚本加载后移除
+                script.onload = function() {
+                    document.head.removeChild(script);
+                };
+                
+                // 错误处理
+                script.onerror = function() {
+                    console.log('百度联想请求失败');
+                    clearSuggestions();
+                };
+            }
+            
+            // 显示搜索联想
+            function displaySuggestions(suggestions) {
+                // 清空容器
+                suggestionsContainer.innerHTML = '';
+                
+                // 添加标题
+                const suggestionTitle = document.createElement('div');
+                suggestionTitle.className = 'suggestion-item';
+                suggestionTitle.style.color = '#4cc9f0';
+                suggestionTitle.style.fontWeight = 'bold';
+                suggestionTitle.style.pointerEvents = 'none';
+                suggestionTitle.textContent = '搜索联想';
+                suggestionsContainer.appendChild(suggestionTitle);
+                
+                // 添加每个联想建议
+                suggestions.forEach(suggestion => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    suggestionItem.textContent = suggestion;
+                    suggestionItem.tabIndex = 0; // 使div可聚焦
+                    
+                    // 点击联想建议，将其填入搜索框
+                    suggestionItem.addEventListener('click', function() {
+                        searchInput.value = suggestion;
+                        searchInput.focus();
+                        clearSuggestions();
+                    });
+                    
+                    // 键盘导航支持
+                    suggestionItem.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            searchInput.value = suggestion;
+                            searchInput.focus();
+                            clearSuggestions();
+                        }
+                        
+                        // 向下箭头导航
+                        if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            const nextItem = this.nextElementSibling;
+                            if (nextItem && nextItem.classList.contains('suggestion-item')) {
+                                nextItem.focus();
+                            }
+                        }
+                        
+                        // 向上箭头导航
+                        if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            const prevItem = this.previousElementSibling;
+                            if (prevItem && prevItem.classList.contains('suggestion-item')) {
+                                prevItem.focus();
+                            } else {
+                                searchInput.focus();
+                            }
+                        }
+                    });
+                    
+                    suggestionsContainer.appendChild(suggestionItem);
+                });
+                
+                // 显示联想容器
+                suggestionsContainer.style.display = 'block';
+            }
+            
+            // 清空搜索联想
+            function clearSuggestions() {
+                suggestionsContainer.innerHTML = '';
+                suggestionsContainer.style.display = 'none';
+            }
+            
+            // 点击页面其他区域时清空联想
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-box-container')) {
+                    clearSuggestions();
+                }
+            });
+            
+            // 初始聚焦搜索框
+            searchInput.focus();
+            
+            // 为Yandex搜索引擎添加链接内容中提到的特性
+            const yandexOption = document.querySelector('[data-engine="yandex"]');
+            yandexOption.title = "Yandex — fast Internet search\nServices: Images, Video, Maps, Translate, Weather, Mail, Games, All\nSearch with Yandex AI";
+            
+            // 添加示例影视关键词
+            const exampleKeywords = [
+                "贫民窟的百万富翁","复仇者联盟", "权力的游戏", "阿凡达", "流浪地球", 
+                "肖申克的救赎", "星际穿越", "盗梦空间", "黑豹"
+            ];
+            
+            // 随机显示一个示例关键词
+            const randomKeyword = exampleKeywords[Math.floor(Math.random() * exampleKeywords.length)];
+            searchInput.placeholder = `例如:${randomKeyword}...`;
+        });
+    </script>
+
+
+
+</body>
+</html>
