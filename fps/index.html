@@ -4752,11 +4752,70 @@ let mouseDX=0, mouseDY=0;
 const SENS = 0.0022;
 let sensScale = 1;              // shrinks with ADS zoom so aim stays 1:1 on screen
 
+/* ====== pointer-lock fallback: position-based steering (drag mode) ======
+   Mirrors Saltline / QtScrcpy mouse-mapping: when requestPointerLock is
+   denied (QQ browser / Electron WebView sandbox), pointer stays visible and
+   a screen-edge band drives continuous rotation. Movement is accumulated
+   into the same mouseDX/mouseDY accumulator so nothing else in the game
+   has to change. */
+let inputMode = 'lock';          // 'lock' (normal) or 'drag' (fallback)
+let everLocked = false;          // true once pointer lock has ever succeeded
+let ptrX = 0.5, ptrY = 0.5;      // pointer pos normalized to [0,1] over canvas
+let ptrInView = false;           // whether pointer is inside the canvas
+const EDGE_H_PX = 16;            // horizontal edge band: fixed 16 CSS px on each side
+const EDGE_V = 0.10;             // vertical proportional band width (after full-speed inset)
+const EDGE_V_INSET_PX = 44;      // QQ browser top/bottom chrome thickness: full-speed zone
+const EDGE_SPD_X = 2.4;          // rad/s at horizontal edge (SENS units: px/s)
+const EDGE_SPD_Y = 1.2;          // rad/s at vertical edge
+const EDGE_STEER_MAX = 1.0;      // max continuous edge-steer duration (seconds) before cooldown
+const EDGE_STEER_COOLDOWN = 0.5; // cooldown duration after max steer (seconds)
+let _edgX = 0, _edgY = 0;        // current edge steer strength [-1,1]
+let edgeSteerTimer = 0;          // accumulated continuous edge-steer time
+let edgeCooldownTimer = 0;       // remaining cooldown time
+
+function edgeStrengthH(n, cssWidth){
+  // Left/right bands are a fixed 16 CSS px wide on each side, converted to a
+  // normalized ratio against the same CSS width that normalises ptrX.
+  const band = cssWidth > 0 ? Math.min(EDGE_H_PX / cssWidth, 0.5) : 0;
+  if (band <= 0) return 0;
+  if (n < band) return -(band - n) / band;
+  if (n > 1 - band) return (n - (1 - band)) / band;
+  return 0;
+}
+function edgeStrengthV(n, canvasHeight){
+  // Top/bottom 42px (QQ browser chrome) are full-speed (-1 / +1); past the inset
+  // a proportional EDGE_V band linearly ramps down to 0 at the inner edge.
+  const insetRatio = canvasHeight > 0 ? EDGE_V_INSET_PX / canvasHeight : 0;
+  const topFull    = insetRatio;
+  const bottomFull = 1 - insetRatio;
+  if (n <= topFull)    return -1;
+  if (n >= bottomFull) return 1;
+  const topZero    = topFull + EDGE_V;
+  const bottomZero = bottomFull - EDGE_V;
+  if (n < topZero)    return -(topZero - n) / EDGE_V;
+  if (n > bottomZero) return (n - bottomZero) / EDGE_V;
+  return 0;
+}
+function applyDragCursor(){
+  // In drag mode, hide the system cursor so only the in-game crosshair shows.
+  document.body.style.cursor = (inputMode === 'drag' && G.running && !G.paused) ? 'none' : '';
+}
+
 addEventListener('keydown', e=>{
   if (e.repeat) { if(['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV'].includes(e.code)) e.preventDefault(); return; }
   keys[e.code]=true;
   if (e.code==='Space') player.spaceEdge = true;      // consumed by the jump/mantle step
   if (['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV','Tab','ControlLeft'].includes(e.code)) e.preventDefault();
+  /* In drag mode (QQ browser) the browser never exits pointer-lock because
+     we never had it in the first place — the native ESC-to-unlock path does
+     not fire pointerlockchange. Handle ESC manually to pause the game. In
+     lock mode the browser still handles ESC natively and pointerlockchange
+     takes care of pausing (vanilla behaviour untouched). */
+  if (e.code==='Escape' && inputMode==='drag' && G.started && !G.over && !G.paused){
+    e.preventDefault();
+    pauseGame();
+    return;
+  }
   if (!G.running) return;
   if (e.code==='KeyR') startReload();
   if (e.code==='Digit1') switchWeapon(0);
@@ -4770,10 +4829,28 @@ addEventListener('keydown', e=>{
 });
 addEventListener('keyup', e=>{ keys[e.code]=false; });
 addEventListener('mousemove', e=>{
-  if (document.pointerLockElement !== document.body) return;
-  mouseDX += e.movementX || 0;
-  mouseDY += e.movementY || 0;
+  const locked = document.pointerLockElement === document.body;
+  if (locked){
+    mouseDX += e.movementX || 0;
+    mouseDY += e.movementY || 0;
+  } else if (inputMode === 'drag'){
+    // Track normalized pointer position for edge-band steering.
+    const r = document.body.getBoundingClientRect();
+    ptrX = (e.clientX - r.left) / r.width;
+    ptrY = (e.clientY - r.top)  / r.height;
+    ptrInView = true;
+    // Also read relative movement — lets the player turn by dragging the
+    // mouse, not only by parking the pointer at the screen edge. Skip
+    // glitch jumps (browser returning huge deltas on tab-switch etc.).
+    const mx = e.movementX || 0, my = e.movementY || 0;
+    if (Math.abs(mx) < 400 && Math.abs(my) < 400){
+      mouseDX += mx;
+      mouseDY += my;
+    }
+  }
 });
+addEventListener('mouseleave', ()=>{ ptrInView = false; _edgX = 0; _edgY = 0; });
+addEventListener('mouseenter', ()=>{ ptrInView = true; });
 addEventListener('mousedown', e=>{
   if (!G.running) return;
   /* Latch the press. A click and release inside one frame — which is most
@@ -4793,34 +4870,81 @@ addEventListener('wheel', e=>{
 }, {passive:true});
 addEventListener('contextmenu', e=>e.preventDefault());
 
+/* Pause overlay helper shared by pointerlockchange (unlock) and manual
+   ESC handling in drag mode. Does exactly what the original unlock branch
+   did — same state, same UI, same audio suspend — so Chrome/Edge users see
+   zero behavioural change. */
+function pauseGame(){
+  G.paused = true; G.running=false;
+  player.ads=false; player.adsK=0; player.adsEase=0;
+  UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
+  UI.cross.classList.remove('hidden'); vmRoot.visible=true;
+  UI.pause.classList.add('on');
+  SFX.suspend();
+  applyDragCursor();
+}
+
 document.addEventListener('pointerlockchange', ()=>{
   const locked = document.pointerLockElement === document.body;
-  if (!locked && G.started && !G.over){
-    G.paused = true; G.running=false;
-    player.ads=false; player.adsK=0; player.adsEase=0;
-    UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
-    UI.cross.classList.remove('hidden'); vmRoot.visible=true;
-    UI.pause.classList.add('on');
-    SFX.suspend();
-  } else if (locked){
+  if (locked){
+    everLocked = true;
+    inputMode = 'lock';
+    applyDragCursor();
     G.paused = false;
     UI.pause.classList.remove('on');
     if (G.started && !G.over){ G.running = true; SFX.resume(); }
+    return;
   }
+  /* Unlocked path:
+     - If we are in drag mode (pointer lock was never granted, e.g. QQ
+       browser), pointerlockchange fires spuriously with locked=false and
+       must NOT pause the game — drag mode is already running without a
+       lock.
+     - Otherwise (Chrome/Edge, native ESC or accidental unfocus): behave
+       exactly like the original game → pause. The browser handles ESC
+       natively, which fires this event, and that is how pausing works. */
+  if (inputMode === 'drag') return;
+  if (G.started && !G.over) pauseGame();
 });
+
 function requestLock(){
+  // In drag mode we never hold a pointer lock; a click on the pause
+  // overlay just resumes the running drag session.
+  if (inputMode === 'drag'){
+    G.paused = false; G.running = true;
+    UI.pause.classList.remove('on');
+    SFX.resume();
+    applyDragCursor();
+    ptrInView = false; _edgX = 0; _edgY = 0;
+    return;
+  }
   const p = document.body.requestPointerLock();
   if (p && p.catch) p.catch(()=>{});
-  /* a denied request fires no pointerlockchange, which would leave the round
-     live but with no mouse look. fall back to the pause overlay so a second
-     click can try again. */
   clearTimeout(requestLock._t);
+  /* The original waited 350ms and, if still unlocked, showed the pause
+     overlay so a second click could retry. We keep that retry behaviour,
+     but if pointer lock has NEVER succeeded (QQ browser / Electron WebView
+     sandbox) we conclude that the API is denied and flip into drag mode
+     instead of dead-looping on the pause overlay. */
   requestLock._t = setTimeout(()=>{
     if (document.pointerLockElement === document.body) return;
     if (!G.started || G.over) return;
-    G.paused = true; G.running = false;
-    UI.pause.classList.add('on');
-  }, 350);
+    if (everLocked){
+      // Lock worked before — this is just a transient failure, retry via pause.
+      G.paused = true; G.running = false;
+      UI.pause.classList.add('on');
+      return;
+    }
+    // First lock attempt never resolved → pointer lock is unavailable.
+    inputMode = 'drag';
+    ptrInView = false; _edgX = 0; _edgY = 0;
+    const r = document.body.getBoundingClientRect();
+    ptrX = r.width / 2; ptrY = r.height / 2;
+    applyDragCursor();
+    G.paused = false; G.running = true;
+    UI.pause.classList.remove('on');
+    SFX.resume();
+  }, 1200);
 }
 UI.startScreen.addEventListener('click', ()=>{ SFX.init(); startGame(); });
 UI.pause.addEventListener('click', ()=>{ SFX.init(); requestLock(); });
@@ -5794,6 +5918,43 @@ function startMantle(target){
 
 function updatePlayer(dt){
   /* ---- look ---- */
+  // Edge-band steering (drag mode only): convert the current pointer
+  // offset-from-centre into a continuous angular velocity, expressed as
+  // equivalent mouse-delta pixels so it rides the same SENS*sensScale
+  // pipeline as real mouse movement and ADS scaling works identically.
+  if (inputMode === 'drag' && G.running && !G.paused && ptrInView){
+    _edgX = edgeStrengthH(ptrX, document.body.clientWidth);
+    _edgY = edgeStrengthV(ptrY, canvas.height);
+    const dtc = Math.min(dt, 0.05);
+    // Anti-dizziness throttle: limit continuous edge-steering to
+    // EDGE_STEER_MAX seconds, then require EDGE_STEER_COOLDOWN seconds
+    // of inactivity before edge-steering engages again. Moving the
+    // pointer back into the centre resets both timers.
+    const isEdgeActive = Math.abs(_edgX) > 1e-4 || Math.abs(_edgY) > 1e-4;
+    if (isEdgeActive && edgeCooldownTimer <= 0){
+      edgeSteerTimer += dtc;
+      if (edgeSteerTimer >= EDGE_STEER_MAX){
+        edgeCooldownTimer = EDGE_STEER_COOLDOWN;
+        _edgX = 0; _edgY = 0;
+      }
+    } else {
+      // Pointer back in centre (no edge pressure) — reset both timers.
+      if (!isEdgeActive){
+        edgeSteerTimer = 0;
+        edgeCooldownTimer = Math.max(0, edgeCooldownTimer - dtc);
+      } else {
+        // In cooldown — suppress steering, count down.
+        edgeCooldownTimer -= dtc;
+        _edgX = 0; _edgY = 0;
+      }
+    }
+    mouseDX += _edgX * EDGE_SPD_X / SENS * dtc;
+    mouseDY += _edgY * EDGE_SPD_Y / SENS * dtc;
+  } else {
+    _edgX = 0; _edgY = 0;
+    edgeSteerTimer = 0;
+    edgeCooldownTimer = 0;
+  }
   player.yaw   -= mouseDX*SENS*sensScale;
   player.pitch -= mouseDY*SENS*sensScale;
   player.pitch = clamp(player.pitch, -PI/2+0.02, PI/2-0.02);
@@ -6364,6 +6525,7 @@ function endGame(win){
   if (G.over) return;
   G.over=true; G.running=false; G.started=false;
   if (document.pointerLockElement) document.exitPointerLock();
+  document.body.style.cursor = '';           // restore system cursor on game over
   player.ads=false; player.adsK=0; player.adsEase=0;
   UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
   UI.cross.classList.remove('hidden'); vmRoot.visible=true;
