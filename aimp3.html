@@ -1,0 +1,997 @@
+﻿<!--
+ * 严重鄙视任何盗窃、复制代码行为6！
+ * 引用、借鉴本站功能或布局的，请在页面中标注或附上链接，谢谢.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+   <!--头部信息-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>歌单三千 随机歌手</title>
+ <meta name="keywords" content="歌单三千 找歌单更方便 随机歌手 姓氏分类 歌曲大全 华语排行">
+ <meta name="description" content="歌单三千，找歌单更方便，收录了华语歌手名单的优质网站，高效率的整理歌单，歌曲列表，提供高效率的上网导航服务。">
+
+<!--百度统计以下-->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4245710b6a21f028e6f49d1d0f614080";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<!--百度统计以上-->
+
+<style>
+  /* ========== 基础重置 ========== */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-0: #000000;
+    --bg-1: #12121a;
+    --bg-2: #1a1a26;
+    --bg-3: #22223a;
+    --accent: #7c5cff;
+    --accent-2: #00d4ff;
+    --accent-glow: rgba(124, 92, 255, .35);
+    --text-1: #f0f0f5;
+    --text-2: #a0a0b8;
+    --text-3: #6a6a82;
+    --radius: 50px;
+    --transition: .3s cubic-bezier(.4,0,.2,1);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* 第一层防横向滚动 */
+    overflow-x: hidden;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg-0);
+    color: var(--text-1);
+    min-height: 100vh;
+    /* 第二层强制禁止横向滚动，双保险 */
+    overflow-x: hidden !important;
+    line-height: 1.6;
+  }
+
+  /* ========== 全局禁止文字选中（搜索框除外） ========== */
+  body, body * {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .search-wrap .search-box input,
+  .search-wrap .search-box input::placeholder {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
+  .bg-orbs {
+    display: none;
+  }
+
+  /* 统一安全内边距容器，代替各个标签分散padding，防止溢出累积 */
+  .safe-padding {
+    padding-inline: 16px;
+  }
+
+  /* ========== 头部 ========== */
+  .header {
+    text-align: center;
+    padding: 12px 0 8px;
+    margin-top: 0;
+  }
+  .header h1 {
+    font-size: clamp(1rem, 2.8vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ========== 搜索框 ========== */
+  .search-wrap {
+    max-width: 560px;
+    margin: 4px auto 20px;
+  }
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-2);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius);
+    padding: 12px 22px;
+    transition: var(--transition);
+  }
+  .search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+  }
+  .search-box svg { flex-shrink: 0; opacity: .6; }
+  .search-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-1);
+    font-size: 1rem;
+    padding-right: 80px;
+  }
+  .search-box input::placeholder { color: var(--text-3); }
+
+  /* 搜索按钮字体21px */
+  .search-box button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 74px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 21px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: none;
+  }
+  .search-box button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ========== 歌单区域标题栏 ========== */
+  .section-title {
+    max-width: 1400px;
+    margin: 40px auto 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  /* 点击区域：三角+歌单文字 鼠标手型 */
+  .title-click-area{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+  }
+  .section-title .icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(1rem, 2vw, 1.1rem);
+    color:#ffffff;
+  }
+  .section-title h2 {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    font-weight: 700;
+  }
+
+  /* ========== 随机歌手按钮 ========== */
+  .random-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none;
+    border-radius: 20px;
+    padding: 5px 14px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+  .random-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  .random-btn.active {
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    animation: randomPulse 1s ease-in-out infinite;
+  }
+  @keyframes randomPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,71,87,.4); }
+    50%     { box-shadow: 0 0 0 8px rgba(255,71,87,0); }
+  }
+  .random-btn .btn-icon {
+    font-size: clamp(1rem, 2vw, 1.1rem);
+    transition: transform .3s;
+    color:#fff;
+  }
+  .random-btn:hover .btn-icon { transform: rotate(180deg); }
+  .random-btn.active .btn-icon { animation: spin .5s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ========== 倒计时弹窗【兼容老WebKit，删除inset】 ========== */
+  .countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .countdown-overlay.show { display: flex; }
+
+  .countdown-wrap{
+    width:100%;
+    padding:0 16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .countdown-name {
+    font-size: 50px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: namePop .3s ease;
+    margin-bottom:16px;
+    text-align:center;
+  }
+  @keyframes namePop {
+    0%   { transform: scale(.5); opacity: 0; }
+    100% { transform: scale(1);  opacity: 1; }
+  }
+  .countdown-num {
+    font-size: 50px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 0 30px var(--accent-glow);
+    margin-bottom:16px;
+    text-align:center;
+  }
+  .countdown-hint {
+    font-size: .9rem;
+    color: var(--text-3);
+    text-align:center;
+  }
+  .countdown-hint kbd {
+    background: var(--bg-3);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: .8rem;
+    color: var(--text-2);
+    margin: 0 2px;
+  }
+
+  /* ========== 歌单网格 ========== */
+  .playlist-grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+
+  .song-card {
+    background: linear-gradient(145deg, var(--bg-2), var(--bg-1));
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: var(--radius);
+    padding: 16px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: var(--transition);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-1);
+    position: relative;
+    overflow: hidden;
+  }
+  .song-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    opacity: 0;
+    transition: var(--transition);
+    z-index: 0;
+  }
+  .song-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(124,92,255,.4);
+    box-shadow: 0 12px 40px rgba(124,92,255,.15);
+  }
+  .song-card:hover::before { opacity: .06; }
+  .song-card > * { position: relative; z-index: 1; }
+
+  .song-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--bg-3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text-2);
+    transition: var(--transition);
+  }
+  .song-card:hover .song-num {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+  }
+  .song-info { flex: 1; min-width: 0; }
+  .song-info .title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ========== 回到顶部按钮【兼容修复】 ========== */
+  .back-top {
+    position: fixed;
+    /* 使用视口相对计算，老webkit更加稳定 */
+    right: max(16px, 26px);
+    bottom: 300px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s ease;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .back-top.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  .back-top:hover {
+    filter: brightness(1.15);
+  }
+
+  /* ========== 响应式 ========== */
+  @media (max-width: 1024px) {
+    .playlist-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  @media (max-width: 748px) {
+    .playlist-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .song-card {
+      padding: 14px 12px;
+      gap: 12px;
+    }
+    .song-num { width: 30px; height: 30px; font-size: .78rem; }
+    .song-info .title { font-size: 16px; }
+
+    .back-top {
+      width: 46px;
+      height: 46px;
+      right: 16px;
+      bottom: 300px;
+      font-size:20px;
+    }
+  }
+
+  /* ========== 入场动画 ========== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .song-card {
+    animation: fadeUp .5s ease both;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- 动态背景（已禁用） -->
+<div class="bg-orbs"></div>
+
+<!-- 歌单标题区域 -->
+<div class="section-title safe-padding">
+  <!-- 可点击区域：三角图标+歌单文字 -->
+  <div class="title-click-area" id="scrollToBottomBtn">
+    <div class="icon">▶</div>
+    <h2>搜索</h2>
+  </div>
+  <button class="random-btn" id="randomBtn">
+    <span class="btn-icon">⟳</span>
+    <span class="btn-text">随机歌手</span>
+  </button>
+</div>
+
+<div class="playlist-grid safe-padding" id="playlist"></div>
+
+<!-- 头部 -->
+<header class="header safe-padding">
+  <h1>🎶 搜索歌手 · 歌单</h1>
+</header>
+
+<!-- 搜索 -->
+<div class="search-wrap safe-padding">
+  <form class="search-box" id="searchForm">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" id="searchInput" placeholder="…找歌或歌手…" autocomplete="off">
+    <button type="submit">搜索</button>
+  </form>
+</div>
+
+<!-- 回到顶部 -->
+<button class="back-top" id="backTop">↑</button>
+
+<!-- 倒计时遮罩 -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-wrap">
+    <div class="countdown-name" id="countdownName"></div>
+    <div class="countdown-num" id="countdownNum">3</div>
+    <div class="countdown-hint">点击「随机歌手」退出</div>
+  </div>
+</div>
+
+<!-- 页面底部锚点 -->
+<div id="pageBottomAnchor"></div>
+
+<script>
+// ======================================
+// 【配置区】全局链接配置，统一管理
+// ======================================
+const BASE_URL = "https://www.buguyy.top";
+const SEARCH_PREFIX = BASE_URL + "/search?keyword=";
+
+// ======================================
+// 【数据区】维护歌手只需要修改这里！
+// 新增歌手直接追加字符串，最简单
+// ======================================
+const artistNames = [
+
+"周杰伦",
+"周深",
+"周笔畅",
+"周华健",
+"周传雄",
+"周柏豪",
+"周慧敏",
+"周兴哲",
+"周冰倩",
+"周蕙",
+"卓依婷",
+"陈奕迅",
+"陈慧琳",
+"陈慧娴",
+"陈百强",
+"陈粒",
+"陈楚生",
+"陈伟霆",
+"陈晓东",
+"陈淑桦",
+"队长",
+"颜人中",
+"孙燕姿",
+"吴青峰",
+"吴宗宪",
+"成龙",
+"程响",
+"唐伯虎",
+"茜拉",
+"林俊杰",
+"林忆莲",
+"林志炫",
+"林宥嘉",
+"林子祥",
+"林依晨",
+"吕方",
+"王菲",
+"王力宏",
+"王心凌",
+"王嘉尔",
+"王宇宙",
+"王杰",
+"王铮亮",
+"王羽泽",
+"王俊凯",
+"王珮瑜",
+"潘玮柏",
+"胡彦斌",
+"胡海泉",
+"胡夏",
+"胡歌",
+"张学友",
+"张国荣",
+"张惠妹",
+"张韶涵",
+"张靓颖",
+"张杰",
+"张信哲",
+"张雨生",
+"张宇",
+"张震岳",
+"张碧晨",
+"张含韵",
+"张柏芝",
+"张栋梁",
+"张卫健",
+"刘德华",
+"刘若英",
+"刘欢",
+"刘宪华",
+"刘惜君",
+"罗志祥",
+"蔡依林",
+"蔡琴",
+"蔡健雅",
+"蔡淳佳",
+"邓丽君",
+"邓紫棋",
+"那英",
+"陶喆",
+"陶晶莹",
+"韦礼安",
+"许嵩",
+"许巍",
+"许茹芸",
+"许美静",
+"许冠杰",
+"许志安",
+"薛之谦",
+"任贤齐",
+"刀郎",
+"汪峰",
+"汪苏泷",
+"李健",
+"李宇春",
+"李佳薇",
+"李玟",
+"李宗盛",
+"李克勤",
+"李玉刚",
+"李胜素",
+"李翊君",
+"李玖哲",
+"李小璐",
+"李彩桦",
+"郑智化",
+"郑秀文",
+"郑中基",
+"侧田",
+"卫兰",
+"毛不易",
+"毛宁",
+"毛阿敏",
+"范晓萱",
+"叶蒨文",
+"叶振棠",
+"韩红",
+"韩雪",
+"韩宝仪",
+"谭咏麟",
+"谭维维",
+"谭晶",
+"莫文蔚",
+"梁咏琪",
+"梁静茹",
+"梁汉文",
+"萧亚轩",
+"萧敬腾",
+"光良",
+"曹格",
+"戴佩妮",
+"江美琪",
+"郁可唯",
+"齐秦",
+"齐豫",
+"伍佰",
+"赵雷",
+"赵传",
+"赵英俊",
+"朴树",
+"金海心",
+"金玟岐",
+"金志文",
+"游鸿明",
+"万芳",
+"苏有朋",
+"苏芮",
+"苏慧伦",
+"苏永康",
+"苏见信",
+"单依纯",
+"尚雯婕",
+"徐小凤",
+"徐良",
+"徐誉滕",
+"徐佳莹",
+"乔浚丞",
+"香香",
+"杨千嬅",
+"杨钰莹",
+"杨坤",
+"杨宗纬",
+"杨幂",
+"黄绮珊",
+"黄霄雲",
+"黄丽玲",
+"黄品源",
+"黄凯芹",
+"Beyond",
+"S.H.E",
+"小S",
+"Sixteen",
+"熊天平",
+"迪克牛仔",
+"品冠",
+"五月天",
+"凤凰传奇",
+"小虎队",
+"新裤子",
+"痛仰乐队",
+"告五人",
+"飞儿乐团",
+"信乐团",
+"纵贯线",
+"动力火车",
+"筷子兄弟",
+"羽泉",
+"花儿乐队",
+"苏打绿",
+"南拳妈妈",
+"草蜢",
+"黑豹乐队",
+"水木年华",
+"F4",
+"零点乐队",
+"登陆少年",
+"黎明",
+"黎瑞恩",
+"郭富城",
+"郭采洁",
+"阿肆",
+"童安格",
+"巫启贤",
+"邰正宵",
+"杜德伟",
+"容祖儿",
+"古巨基",
+"梅艳芳",
+"田震",
+"田馥甄",
+"庾澄庆",
+"孟庭苇",
+"姜育恒",
+"罗大佑",
+"辛晓琪",
+"伍思凯",
+"彭羚",
+"关淑怡",
+"关晓彤",
+"汤宝如",
+"沙宝亮",
+"满文军",
+"黄渤",
+"宝石gem",
+"欣宝儿",
+"赖美云",
+"屠洪刚",
+"费玉清",
+"费翔",
+"方大同",
+"龚琳娜",
+"萨顶顶",
+"腾格尔",
+"卢冠廷",
+"庞龙",
+"戴荃",
+"华晨宇",
+"肖战",
+"宋雨琦",
+"Adele",
+"Avril Lavigne",
+"Ariana Grande",
+"Ailee",
+"Adam Christopher",
+"Backstreet Boys",
+"后街男孩",
+"Britney Spears",
+"BLACKPINK",
+"BTS",
+"BigBang",
+"Bob Dylan",
+"Celine Dion",
+"Coldplay",
+"Carpenters",
+"Daydream",
+"Taylor Swift",
+"Whitney Houston",
+"Michael",
+"Mariah Carey",
+"Madonna",
+"Lady Gaga",
+"Rihanna",
+"Eagles",
+"Elvis Presley",
+"Enya",
+"EXO",
+"Faith",
+"(g)i-dle",
+"少女时代",
+"helene",
+"Hillsong Young",
+"Westlife",
+"Vitas",
+"ONE OK ROCK",
+"Owl City",
+"Sarah Brightman",
+"sia",
+"Shania Twain",
+"Dolly Parton",
+"Jackson",
+"John",
+"Johnny Cash",
+"Kenny Rogers",
+"Kenny",
+"Lana Del Rey",
+"Learns",
+"Nelson",
+"Rock",
+"Simon",
+"smile",
+"Sweety",
+"Style",
+"Yiruma",
+"久石让",
+"坂本",
+"马克西姆",
+"李闰珉",
+"宗次郎",
+"岸部眞明",
+"矶村由纪子",
+"中岛",
+"米津",
+"泽野弘之",
+"S.E.N.S",
+"July",
+"吉森信",
+"出羽良彰",
+"羽肿",
+"三亩地",
+"和田",
+"郎朗",
+
+];
+// 固定特殊条目
+const SPECIAL_ITEM = {
+  name: "群星组合"
+};
+
+// ======================================
+// 【DOM缓存】页面元素一次性获取，提升性能
+// ======================================
+const el = {
+  playlist: document.getElementById("playlist"),
+  randomBtn: document.getElementById("randomBtn"),
+  overlay: document.getElementById("countdownOverlay"),
+  countdownName: document.getElementById("countdownName"),
+  countdownNum: document.getElementById("countdownNum"),
+  btnText: document.querySelector(".random-btn .btn-text"),
+  btnIcon: document.querySelector(".random-btn .btn-icon"),
+  backTop: document.getElementById("backTop"),
+  searchForm: document.getElementById("searchForm"),
+  searchInput: document.getElementById("searchInput"),
+  scrollToBottomBtn: document.getElementById("scrollToBottomBtn"),
+  pageBottomAnchor: document.getElementById("pageBottomAnchor")
+};
+
+// ======================================
+// 【功能函数区】
+// ======================================
+/**
+ * 渲染全部歌单卡片
+ */
+function renderPlaylist() {
+  // 合并普通歌手 + 末尾追加群星组合
+  const allList = [...artistNames, SPECIAL_ITEM.name];
+
+  allList.forEach((name, index) => {
+    const num = String(index + 1).padStart(2, "0");
+    const card = document.createElement("a");
+    card.className = "song-card";
+    card.style.animationDelay = (index * 0.03) + "s";
+
+    // 判断链接
+    if (name === SPECIAL_ITEM.name) {
+      card.href = BASE_URL;
+    } else {
+      card.href = SEARCH_PREFIX + encodeURIComponent(name);
+    }
+    card.target = "_blank";
+    card.rel = "noopener";
+
+    card.innerHTML = `
+      <div class="song-num">${num}</div>
+      <div class="song-info">
+        <div class="title">${name}</div>
+      </div>
+    `;
+    el.playlist.appendChild(card);
+  });
+}
+
+/**
+ * 随机挑选普通歌手（排除群星组合）
+ */
+function getRandomArtist() {
+  const randomIndex = Math.floor(Math.random() * artistNames.length);
+  return artistNames[randomIndex];
+}
+
+// 随机状态变量
+let isRunning = false;
+let timer = null;
+let currentArtist = "";
+
+/**
+ * 切换随机歌手倒计时
+ */
+function toggleRandom() {
+  if (!isRunning) {
+    startRandom();
+  } else {
+    cancelRandom();
+  }
+}
+
+/**
+ * 启动随机倒计时
+ */
+function startRandom() {
+  isRunning = true;
+  el.randomBtn.classList.add("active");
+  el.btnIcon.textContent = "⟳";
+  el.btnText.textContent = "取消随机";
+
+  currentArtist = getRandomArtist();
+  el.countdownName.textContent = currentArtist;
+  el.countdownNum.textContent = 3;
+  el.overlay.classList.add("show");
+
+  const startTime = Date.now();
+  timer = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.ceil((3000 - elapsed) / 1000);
+
+    currentArtist = getRandomArtist();
+    el.countdownName.textContent = currentArtist;
+
+    if (remaining > 0) {
+      el.countdownNum.textContent = remaining;
+    } else {
+      el.countdownNum.textContent = "GO!";
+    }
+
+    if (elapsed >= 3000) {
+      clearInterval(timer);
+      finishRandom();
+    }
+  }, 100);
+}
+
+/**
+ * 取消随机
+ */
+function cancelRandom() {
+  clearInterval(timer);
+  isRunning = false;
+  el.randomBtn.classList.remove("active");
+  el.btnIcon.textContent = "⟳";
+  el.btnText.textContent = "随机歌手";
+  el.overlay.classList.remove("show");
+}
+
+/**
+ * 倒计时结束跳转
+ */
+function finishRandom() {
+  isRunning = false;
+  el.randomBtn.classList.remove("active");
+  el.btnIcon.textContent = "⟳";
+  el.btnText.textContent = "随机歌手";
+
+  setTimeout(() => {
+    el.overlay.classList.remove("show");
+    if (currentArtist) {
+      const url = SEARCH_PREFIX + encodeURIComponent(currentArtist);
+      window.open(url, "_blank", "noopener");
+    }
+  }, 500);
+}
+
+/**
+ * 搜索提交
+ */
+function handleSearch(e) {
+  e.preventDefault();
+  const kw = el.searchInput.value.trim();
+  if (kw) {
+    window.open(SEARCH_PREFIX + encodeURIComponent(kw), "_blank", "noopener");
+  }
+}
+
+/**
+ * 回到顶部显示控制
+ */
+function handleScroll() {
+  el.backTop.classList.toggle("show", window.scrollY > 400);
+}
+
+function backToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/**
+ * 平滑滚动到页面底部锚点
+ */
+function scrollPageToBottom(){
+  el.pageBottomAnchor.scrollIntoView({
+    behavior:"smooth"
+  });
+}
+
+// ======================================
+// 【事件绑定 & 页面初始化入口】
+// ======================================
+function init() {
+  // 渲染列表
+  renderPlaylist();
+
+  // 绑定事件
+  el.randomBtn.addEventListener("click", toggleRandom);
+  el.searchForm.addEventListener("submit", handleSearch);
+  el.backTop.addEventListener("click", backToTop);
+  el.overlay.addEventListener("click", () => isRunning && cancelRandom());
+  // 绑定【三角+歌单】点击跳转底部
+  el.scrollToBottomBtn.addEventListener("click",scrollPageToBottom);
+
+  window.addEventListener("scroll", handleScroll);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isRunning) cancelRandom();
+  });
+}
+
+// 启动初始化
+init();
+</script>
+</body>
+</html>
