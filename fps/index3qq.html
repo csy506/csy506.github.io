@@ -4762,20 +4762,24 @@ let inputMode = 'lock';          // 'lock' (normal) or 'drag' (fallback)
 let everLocked = false;          // true once pointer lock has ever succeeded
 let ptrX = 0.5, ptrY = 0.5;      // pointer pos normalized to [0,1] over canvas
 let ptrInView = false;           // whether pointer is inside the canvas
-const EDGE_H = 0.06;             // horizontal edge band (6% on each side, proportional)
+const EDGE_H_PX = 16;            // horizontal edge band: fixed 16 CSS px on each side
 const EDGE_V = 0.10;             // vertical proportional band width (after full-speed inset)
 const EDGE_V_INSET_PX = 44;      // QQ browser top/bottom chrome thickness: full-speed zone
 const EDGE_SPD_X = 2.4;          // rad/s at horizontal edge (SENS units: px/s)
 const EDGE_SPD_Y = 1.2;          // rad/s at vertical edge
-const EDGE_STEER_MAX = 1.5;      // max continuous edge-steer duration (seconds) before cooldown
-const EDGE_STEER_COOLDOWN = 1.0; // cooldown duration after max steer (seconds)
+const EDGE_STEER_MAX = 1.0;      // max continuous edge-steer duration (seconds) before cooldown
+const EDGE_STEER_COOLDOWN = 0.5; // cooldown duration after max steer (seconds)
 let _edgX = 0, _edgY = 0;        // current edge steer strength [-1,1]
 let edgeSteerTimer = 0;          // accumulated continuous edge-steer time
 let edgeCooldownTimer = 0;       // remaining cooldown time
 
-function edgeStrengthH(n){
-  if (n < EDGE_H) return -(EDGE_H - n) / EDGE_H;
-  if (n > 1 - EDGE_H) return (n - (1 - EDGE_H)) / EDGE_H;
+function edgeStrengthH(n, cssWidth){
+  // Left/right bands are a fixed 16 CSS px wide on each side, converted to a
+  // normalized ratio against the same CSS width that normalises ptrX.
+  const band = cssWidth > 0 ? Math.min(EDGE_H_PX / cssWidth, 0.5) : 0;
+  if (band <= 0) return 0;
+  if (n < band) return -(band - n) / band;
+  if (n > 1 - band) return (n - (1 - band)) / band;
   return 0;
 }
 function edgeStrengthV(n, canvasHeight){
@@ -5919,7 +5923,7 @@ function updatePlayer(dt){
   // equivalent mouse-delta pixels so it rides the same SENS*sensScale
   // pipeline as real mouse movement and ADS scaling works identically.
   if (inputMode === 'drag' && G.running && !G.paused && ptrInView){
-    _edgX = edgeStrengthH(ptrX);
+    _edgX = edgeStrengthH(ptrX, document.body.clientWidth);
     _edgY = edgeStrengthV(ptrY, canvas.height);
     const dtc = Math.min(dt, 0.05);
     // Anti-dizziness throttle: limit continuous edge-steering to
