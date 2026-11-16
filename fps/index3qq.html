@@ -4762,9 +4762,9 @@ let inputMode = 'lock';          // 'lock' (normal) or 'drag' (fallback)
 let everLocked = false;          // true once pointer lock has ever succeeded
 let ptrX = 0.5, ptrY = 0.5;      // pointer pos normalized to [0,1] over canvas
 let ptrInView = false;           // whether pointer is inside the canvas
-const EDGE_H = 0.12;             // horizontal edge band (12% on each side, proportional)
+const EDGE_H = 0.06;             // horizontal edge band (6% on each side, proportional)
 const EDGE_V = 0.10;             // vertical proportional band width (after full-speed inset)
-const EDGE_V_INSET_PX = 42;      // QQ browser top/bottom chrome thickness: full-speed zone
+const EDGE_V_INSET_PX = 44;      // QQ browser top/bottom chrome thickness: full-speed zone
 const EDGE_SPD_X = 2.4;          // rad/s at horizontal edge (SENS units: px/s)
 const EDGE_SPD_Y = 1.2;          // rad/s at vertical edge
 let _edgX = 0, _edgY = 0;        // current edge steer strength [-1,1]
