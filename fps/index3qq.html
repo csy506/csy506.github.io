@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -4747,90 +4747,50 @@ function drawMinimap(){
 /* =========================================================================
    13. INPUT
    ========================================================================= */
-/* =========================================================================
-   13. INPUT — pointer lock + edge steering fallback (QQ 浏览器兼容)
-   ========================================================================= */
-// 输入模式：'lock' = 指针锁定模式（Chrome/Edge 正常）；'drag' = 边缘位置驱动模式（锁定失败时自动降级）
-let inputMode = 'lock';
-// drag 模式下的指针位置（归一化 0~1，相对于 canvas）
-let ptrX = 0, ptrY = 0, ptrInView = false;
-// 边缘带参数（对齐 Saltline 方案）
-const EDGE_BAND_X = 0.12;  // 横向边缘带宽度 12%
-const EDGE_BAND_Y = 0.10;  // 纵向边缘带宽度 10%
-const EDGE_MAX_DX = 2.4;   // 横向最大角速度 rad/s
-const EDGE_MAX_DY = 1.2;   // 纵向最大角速度 rad/s
-const LOCK_TIMEOUT = 1200; // 锁定请求超时（ms）
-const RELICK_DELAY = 400;  // 意外解锁后自动重锁的延迟（ms）
-let lockRequestTs = 0;
-let everLocked = false;    // 是否曾经成功锁定过（成功后就不再自动降级）
-let escPressed = false;    // ESC 按下的标志，用于区分"主动暂停"与"浏览器夺走锁定"
-let reLockTimer = 0;       // 意外解锁后的重锁定时器
-
-function isLocked(){ return document.pointerLockElement === canvas; }
-
-function edgeToDelta(dt){
-  // 指针不在画面内或已锁定时，边缘带不贡献转向
-  if (inputMode !== 'drag' || !ptrInView) return [0,0];
-  let nx = 0, ny = 0;
-  if (ptrX < EDGE_BAND_X)        nx = -(EDGE_BAND_X - ptrX) / EDGE_BAND_X;
-  else if (ptrX > 1-EDGE_BAND_X) nx =  (ptrX - (1-EDGE_BAND_X)) / EDGE_BAND_X;
-  if (ptrY < EDGE_BAND_Y)        ny = -(EDGE_BAND_Y - ptrY) / EDGE_BAND_Y;
-  else if (ptrY > 1-EDGE_BAND_Y) ny =  (ptrY - (1-EDGE_BAND_Y)) / EDGE_BAND_Y;
-  // 输出"本帧应累加的弧度 / SENS / sensScale"，和原 SENS=0.0022 rad/像素 体系对齐
-  return [nx * EDGE_MAX_DX * dt / SENS / sensScale,
-          ny * EDGE_MAX_DY * dt / SENS / sensScale];
-}
-
-function applyCursor(){
-  // lock 模式且已锁定 → 系统指针由浏览器接管隐藏；drag 模式运行中 → 强制 none 用游戏准星；其余显示默认
-  if (inputMode === 'drag' && G.running && !G.paused && !G.over){
-    document.body.style.cursor = 'none';
-  } else {
-    document.body.style.cursor = '';
-  }
-}
-
-function setPaused(p){
-  p = !!p;
-  if (!!G.paused === p) return;
-  G.paused = p;
-  G.running = !p && G.started && !G.over;
-  if (p){
-    player.ads=false; player.adsK=0; player.adsEase=0;
-    UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
-    UI.cross.classList.remove('hidden'); vmRoot.visible=true;
-    UI.pause.classList.add('on');
-    document.body.style.cursor = '';
-    SFX.suspend();
-    if (isLocked()){
-      try { document.exitPointerLock(); } catch(_){}
-    }
-    clearTimeout(reLockTimer); reLockTimer = 0;
-  } else {
-    UI.pause.classList.remove('on');
-    if (G.started && !G.over){ G.running = true; SFX.resume(); }
-    applyCursor();
-    // 从暂停恢复：环境支持锁定就重新请求；否则保持 drag
-    if (G.started && !G.over && (everLocked || inputMode === 'lock')){
-      requestLock();
-    }
-  }
-}
-
 const keys = Object.create(null);
 let mouseDX=0, mouseDY=0;
 const SENS = 0.0022;
 let sensScale = 1;              // shrinks with ADS zoom so aim stays 1:1 on screen
 
+/* ====== pointer-lock fallback: position-based steering (drag mode) ======
+   Mirrors Saltline / QtScrcpy mouse-mapping: when requestPointerLock is
+   denied (QQ browser / Electron WebView sandbox), pointer stays visible and
+   a screen-edge band drives continuous rotation. Movement is accumulated
+   into the same mouseDX/mouseDY accumulator so nothing else in the game
+   has to change. */
+let inputMode = 'lock';          // 'lock' (normal) or 'drag' (fallback)
+let everLocked = false;          // true once pointer lock has ever succeeded
+let ptrX = 0.5, ptrY = 0.5;      // pointer pos normalized to [0,1] over canvas
+let ptrInView = false;           // whether pointer is inside the canvas
+const EDGE_H = 0.12;             // horizontal edge band (12% on each side)
+const EDGE_V = 0.10;             // vertical edge band (10% on each side)
+const EDGE_SPD_X = 2.4;          // rad/s at horizontal edge (SENS units: px/s)
+const EDGE_SPD_Y = 1.2;          // rad/s at vertical edge
+let _edgX = 0, _edgY = 0;        // current edge steer strength [-1,1]
+
+function edgeStrength(n, band){
+  if (n < band) return -(band - n) / band;
+  if (n > 1 - band) return (n - (1 - band)) / band;
+  return 0;
+}
+function applyDragCursor(){
+  // In drag mode, hide the system cursor so only the in-game crosshair shows.
+  document.body.style.cursor = (inputMode === 'drag' && G.running && !G.paused) ? 'none' : '';
+}
+
 addEventListener('keydown', e=>{
-  if (e.repeat) { if(['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV','Escape'].includes(e.code)) e.preventDefault(); return; }
+  if (e.repeat) { if(['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV'].includes(e.code)) e.preventDefault(); return; }
   keys[e.code]=true;
-  if (e.code==='Space') player.spaceEdge = true;
-  if (['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV','Tab','ControlLeft','Escape'].includes(e.code)) e.preventDefault();
-  // 只有按 ESC 才暂停；不再因指针解锁自动暂停
-  if (e.code==='Escape' && G.started && !G.over){
-    escPressed = true;
-    setPaused(!G.paused);
+  if (e.code==='Space') player.spaceEdge = true;      // consumed by the jump/mantle step
+  if (['Space','KeyR','Digit1','Digit2','Digit3','Digit4','KeyV','Tab','ControlLeft'].includes(e.code)) e.preventDefault();
+  /* In drag mode (QQ browser) the browser never exits pointer-lock because
+     we never had it in the first place — the native ESC-to-unlock path does
+     not fire pointerlockchange. Handle ESC manually to pause the game. In
+     lock mode the browser still handles ESC natively and pointerlockchange
+     takes care of pausing (vanilla behaviour untouched). */
+  if (e.code==='Escape' && inputMode==='drag' && G.started && !G.over && !G.paused){
+    e.preventDefault();
+    pauseGame();
     return;
   }
   if (!G.running) return;
@@ -4844,38 +4804,37 @@ addEventListener('keydown', e=>{
     if (w.semiToggle){ w.semi=!w.semi; SFX.boltClick(); updateAmmoUI(); }
   }
 });
-addEventListener('keyup', e=>{ keys[e.code]=false; if (e.code==='Escape') escPressed=false; });
-
-// 鼠标移动统一绑在 document 上——指针锁定后事件派发目标可能是 document/body/canvas，
-// 绑在 document 能同时接住 lock 和 drag 两种情况；再用目标元素/坐标判断是否在 canvas 内。
-document.addEventListener('mousemove', e=>{
-  // 更新归一化指针位置（用于 drag 模式的边缘带）
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
-  ptrX = cx / rect.width;
-  ptrY = cy / rect.height;
-  ptrInView = cx >= 0 && cx <= rect.width && cy >= 0 && cy <= rect.height;
-
-  if (isLocked()){
-    // lock 模式：直接读 movementX/Y
+addEventListener('keyup', e=>{ keys[e.code]=false; });
+addEventListener('mousemove', e=>{
+  const locked = document.pointerLockElement === document.body;
+  if (locked){
     mouseDX += e.movementX || 0;
     mouseDY += e.movementY || 0;
-  } else if (inputMode === 'drag' && G.running && !G.paused && ptrInView){
-    // drag 模式：移动鼠标直接转（过滤 >400px/帧 的突跳）
-    const dx = e.movementX || 0, dy = e.movementY || 0;
-    if (Math.abs(dx) < 400 && Math.abs(dy) < 400){
-      mouseDX += dx;
-      mouseDY += dy;
+  } else if (inputMode === 'drag'){
+    // Track normalized pointer position for edge-band steering.
+    const r = document.body.getBoundingClientRect();
+    ptrX = (e.clientX - r.left) / r.width;
+    ptrY = (e.clientY - r.top)  / r.height;
+    ptrInView = true;
+    // Also read relative movement — lets the player turn by dragging the
+    // mouse, not only by parking the pointer at the screen edge. Skip
+    // glitch jumps (browser returning huge deltas on tab-switch etc.).
+    const mx = e.movementX || 0, my = e.movementY || 0;
+    if (Math.abs(mx) < 400 && Math.abs(my) < 400){
+      mouseDX += mx;
+      mouseDY += my;
     }
   }
-}, true);  // 捕获阶段，保证 HUD/界面元素不会吞掉移动事件
-
-canvas.addEventListener('mouseenter', ()=>{ ptrInView = true; });
-canvas.addEventListener('mouseleave', ()=>{ ptrInView = false; });
-
+});
+addEventListener('mouseleave', ()=>{ ptrInView = false; _edgX = 0; _edgY = 0; });
+addEventListener('mouseenter', ()=>{ ptrInView = true; });
 addEventListener('mousedown', e=>{
   if (!G.running) return;
+  /* Latch the press. A click and release inside one frame — which is most
+     quick taps at 140fps — used to set triggerHeld and clear it again before
+     the update loop ever looked, and the shot simply never happened. The
+     buffer also lets a click land in the last moments of a reload or the
+     cooldown between rounds, so the gun answers the instant it is able. */
   if (e.button===0){ player.triggerHeld=true; player.clickBuf=0.12; }
   if (e.button===2){ e.preventDefault(); toggleADS(); }
 });
@@ -4888,109 +4847,84 @@ addEventListener('wheel', e=>{
 }, {passive:true});
 addEventListener('contextmenu', e=>e.preventDefault());
 
+/* Pause overlay helper shared by pointerlockchange (unlock) and manual
+   ESC handling in drag mode. Does exactly what the original unlock branch
+   did — same state, same UI, same audio suspend — so Chrome/Edge users see
+   zero behavioural change. */
+function pauseGame(){
+  G.paused = true; G.running=false;
+  player.ads=false; player.adsK=0; player.adsEase=0;
+  UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
+  UI.cross.classList.remove('hidden'); vmRoot.visible=true;
+  UI.pause.classList.add('on');
+  SFX.suspend();
+  applyDragCursor();
+}
+
 document.addEventListener('pointerlockchange', ()=>{
-  const locked = isLocked();
+  const locked = document.pointerLockElement === document.body;
   if (locked){
     everLocked = true;
     inputMode = 'lock';
-    applyCursor();
-    if (G.started && !G.over && G.paused){
-      // 锁定成功 → 自动从暂停恢复
-      setPaused(false);
-    } else if (G.started && !G.over){
-      G.running = true;
-    }
-    clearTimeout(reLockTimer); reLockTimer = 0;
-  } else {
-    // 解锁：仅在用户主动按 ESC 时暂停；其它意外解锁（弹窗、切窗口等）尝试短延迟重锁
-    clearTimeout(reLockTimer);
-    if (escPressed || G.paused || !G.started || G.over){
-      // 用户行为：不重锁
-      reLockTimer = 0;
-    } else if (everLocked){
-      // 支持锁定的浏览器里意外失锁 → 短暂延迟后自动重锁，让浏览器有时间完成原生弹窗
-      reLockTimer = setTimeout(()=>{
-        reLockTimer = 0;
-        if (G.started && !G.over && !G.paused && !isLocked()) requestLock();
-      }, RELICK_DELAY);
-    }
-    applyCursor();
+    applyDragCursor();
+    G.paused = false;
+    UI.pause.classList.remove('on');
+    if (G.started && !G.over){ G.running = true; SFX.resume(); }
+    return;
   }
-});
-
-document.addEventListener('pointerlockerror', ()=>{
-  // 锁定被拒绝：从未成功过就降级到 drag；已成功过说明这次只是异常失败，交给重锁定时器
-  if (!everLocked){
-    inputMode = 'drag';
-    applyCursor();
-    if (G.started && !G.over){ G.running = true; G.paused = false; UI.pause.classList.remove('on'); }
-  }
+  /* Unlocked path:
+     - If we are in drag mode (pointer lock was never granted, e.g. QQ
+       browser), pointerlockchange fires spuriously with locked=false and
+       must NOT pause the game — drag mode is already running without a
+       lock.
+     - Otherwise (Chrome/Edge, native ESC or accidental unfocus): behave
+       exactly like the original game → pause. The browser handles ESC
+       natively, which fires this event, and that is how pausing works. */
+  if (inputMode === 'drag') return;
+  if (G.started && !G.over) pauseGame();
 });
 
 function requestLock(){
-  // drag 模式且从未锁定成功：直接保持 drag，不再尝试锁定
-  if (inputMode === 'drag' && !everLocked){
-    applyCursor();
-    if (G.started && !G.over){ G.running = true; }
+  // In drag mode we never hold a pointer lock; a click on the pause
+  // overlay just resumes the running drag session.
+  if (inputMode === 'drag'){
+    G.paused = false; G.running = true;
+    UI.pause.classList.remove('on');
+    SFX.resume();
+    applyDragCursor();
+    ptrInView = false; _edgX = 0; _edgY = 0;
     return;
   }
-  // 已经锁定就不用再请求
-  if (isLocked()){ return; }
-  // 必须在用户手势栈里调用；锁定目标用 canvas（比 body 在 file:// 下更稳）
-  try {
-    lockRequestTs = performance.now();
-    const p = canvas.requestPointerLock();
-    if (p && p.catch) p.catch(()=>{
-      if (!everLocked){
-        inputMode = 'drag';
-        applyCursor();
-        if (G.started && !G.over){ G.running = true; G.paused=false; UI.pause.classList.remove('on'); }
-      }
-    });
-  } catch(err){
-    // API 不存在：直接降级
-    inputMode = 'drag';
-    applyCursor();
-    if (G.started && !G.over){ G.running = true; G.paused=false; UI.pause.classList.remove('on'); }
-    return;
-  }
-  // 超时检测：1.2s 后仍未锁定且从未成功过 → 降级 drag
+  const p = document.body.requestPointerLock();
+  if (p && p.catch) p.catch(()=>{});
   clearTimeout(requestLock._t);
+  /* The original waited 350ms and, if still unlocked, showed the pause
+     overlay so a second click could retry. We keep that retry behaviour,
+     but if pointer lock has NEVER succeeded (QQ browser / Electron WebView
+     sandbox) we conclude that the API is denied and flip into drag mode
+     instead of dead-looping on the pause overlay. */
   requestLock._t = setTimeout(()=>{
-    if (isLocked()) return;
-    if (!G.started || G.over || G.paused) return;
-    if (!everLocked){
-      inputMode = 'drag';
-      applyCursor();
-      G.running = true;
+    if (document.pointerLockElement === document.body) return;
+    if (!G.started || G.over) return;
+    if (everLocked){
+      // Lock worked before — this is just a transient failure, retry via pause.
+      G.paused = true; G.running = false;
+      UI.pause.classList.add('on');
+      return;
     }
-  }, LOCK_TIMEOUT);
+    // First lock attempt never resolved → pointer lock is unavailable.
+    inputMode = 'drag';
+    ptrInView = false; _edgX = 0; _edgY = 0;
+    const r = document.body.getBoundingClientRect();
+    ptrX = r.width / 2; ptrY = r.height / 2;
+    applyDragCursor();
+    G.paused = false; G.running = true;
+    UI.pause.classList.remove('on');
+    SFX.resume();
+  }, 1200);
 }
-
-// 点击画布区域时（非 UI 面板）主动请求锁定——这是最稳定的手势触发点
-canvas.addEventListener('click', ()=>{
-  SFX.init();
-  if (!G.started || G.over) return;
-  if (G.paused){
-    // 从暂停点继续
-    setPaused(false);
-  } else if (!isLocked() && (everLocked || inputMode === 'lock')){
-    requestLock();
-  }
-});
-
-UI.startScreen.addEventListener('click', ()=>{
-  SFX.init();
-  startGame();
-});
-UI.pause.addEventListener('click', ()=>{
-  SFX.init();
-  if (inputMode === 'drag' && !everLocked){
-    setPaused(false);
-  } else {
-    requestLock();
-  }
-});
+UI.startScreen.addEventListener('click', ()=>{ SFX.init(); startGame(); });
+UI.pause.addEventListener('click', ()=>{ SFX.init(); requestLock(); });
 $('restartBtn').addEventListener('click', e=>{ e.stopPropagation(); restart(); });
 
 /* =========================================================================
@@ -5961,6 +5895,20 @@ function startMantle(target){
 
 function updatePlayer(dt){
   /* ---- look ---- */
+  // Edge-band steering (drag mode only): convert the current pointer
+  // offset-from-centre into a continuous angular velocity, expressed as
+  // equivalent mouse-delta pixels so it rides the same SENS*sensScale
+  // pipeline as real mouse movement and ADS scaling works identically.
+  if (inputMode === 'drag' && G.running && !G.paused && ptrInView){
+    _edgX = edgeStrength(ptrX, EDGE_H);
+    _edgY = edgeStrength(ptrY, EDGE_V);
+    // Clamp dt so a background-tab stall doesn't spin the camera 180°.
+    const dtc = Math.min(dt, 0.05);
+    mouseDX += _edgX * EDGE_SPD_X / SENS * dtc;
+    mouseDY += _edgY * EDGE_SPD_Y / SENS * dtc;
+  } else {
+    _edgX = 0; _edgY = 0;
+  }
   player.yaw   -= mouseDX*SENS*sensScale;
   player.pitch -= mouseDY*SENS*sensScale;
   player.pitch = clamp(player.pitch, -PI/2+0.02, PI/2-0.02);
@@ -6521,9 +6469,6 @@ function startGame(){
   UI.endScreen.classList.add('hide');
   UI.hud.classList.add('on');
   G.started=true; G.running=true; G.over=false;
-  // 重置 drag 模式状态，避免边缘带因默认 (0,0) 立刻产生转向
-  ptrX = 0.5; ptrY = 0.5; ptrInView = false;
-  mouseDX = mouseDY = 0;
   requestLock();
 }
 function restart(){
@@ -6534,12 +6479,12 @@ function endGame(win){
   if (G.over) return;
   G.over=true; G.running=false; G.started=false;
   if (document.pointerLockElement) document.exitPointerLock();
+  document.body.style.cursor = '';           // restore system cursor on game over
   player.ads=false; player.adsK=0; player.adsEase=0;
   UI._scopeK=-1; UI.scope.style.opacity=0; compMat.uniforms.scope.value=0;
   UI.cross.classList.remove('hidden'); vmRoot.visible=true;
   UI.hud.classList.remove('on');
   UI.pause.classList.remove('on');
-  document.body.style.cursor = '';
   /* enemies stop ticking here, so their nameplates have to be cleared by hand
      or they float over the debrief */
   for (const e of enemies) e.tag.sprite.visible = false;
@@ -6618,12 +6563,6 @@ function frame(now){
     G.elapsed += dt;
     G.time -= dt;
     if (G.grace > 0) G.grace -= dt;
-    // drag 模式下：把边缘带的转向增量叠加到 mouseDX/mouseDY（位置→持续角速度→本帧弧度）
-    if (inputMode === 'drag'){
-      const [edx, edy] = edgeToDelta(dt);
-      mouseDX += edx;
-      mouseDY += edy;
-    }
     updatePlayer(dt);
     updateCombatDirector();
     for (const e of enemies) updateEnemy(e, dt);
