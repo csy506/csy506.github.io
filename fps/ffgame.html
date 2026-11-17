@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,11 +6,22 @@
 
 <title>非常宝藏 电脑收藏夹</title>
 
-<meta name="description" content="非常宝藏电脑收藏夹，saltline，游戏合集，道具赛车、坦克大战、我的世界、墨浪对战、种菜小镇、抓精灵、坦克世界、马里奥第一关，电脑Edge浏览器一键打开游玩，支持数字快捷键1~10快速唤起">
-<meta name="keywords" content="AI游戏,网页小游戏,在线AI游戏,道具赛车,坦克大战,墨浪对战,种菜小镇,抓精灵,马里奥第一关,非常宝藏电脑收藏夹">
+<meta name="description" content="非常宝藏电脑收藏夹，铁壁行动，saltline，游戏合集，道具赛车、坦克大战、我的世界、墨浪对战、种菜小镇、抓精灵、坦克世界、马里奥第一关，电脑Edge浏览器一键打开游玩，支持数字快捷键快速唤起">
+<meta name="keywords" content="AI游戏,网页小游戏,在线AI游戏,铁壁行动，道具赛车,坦克大战,墨浪对战,种菜小镇,抓精灵,马里奥第一关,非常宝藏电脑收藏夹">
 <meta name="author" content="非常宝藏">
-
 <meta name="robots" content="index,follow">
+
+<!--百度统计以下-->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4245710b6a21f028e6f49d1d0f614080";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<!--百度统计以上-->
 
 <link rel="canonical" href="">
 <style>
@@ -40,17 +51,14 @@ footer{margin-top:50px;padding-top:24px;border-top:1px solid #272735;text-align:
 <div class="container">
 
 <header>
-
 <h1>非常宝藏 电脑收藏夹</h1>
-
-<p class="desc">数字快捷键输入 1~10，支持双位数字10，输入后等待3秒跳转</p>
+<p class="desc" id="descTip">数字键 1~N，快速启动</p>
 <p class="key-tip">当前输入：<span id="inputBox">无</span></p>
 </header>
 
 <div class="grid" id="gameGrid"></div>
 <footer>
-
-<p>本站收录游戏来源于网络，游玩使用电脑Edge浏览器。</p>
+<p>推荐使用电脑Edge或Chrome浏览器</p>
 <p>合作交流反馈Q群：906602686</p>
 </footer>
 </div>
@@ -60,16 +68,16 @@ const PROTO="https://";
 const MP="makeplay.ai/p/";   // 公共域名前缀，仅此一处出现
 // 以 @ 开头的地址自动拼上 MP，其余地址按原样拼 PROTO
 const raw=[
-["铁壁行动","fuwu.pages.dev/fps","枪战打十个"],
+["铁壁行动","csy506.github.io/fps/","枪战打十个"],
 
 ["坦克大战","www.jarvisuni.com/game/tanke3d.html","坦克WASD空格"],
 
 ["道具赛车","www.jarvisuni.com/game/tiki_turbo.html","赛车WASD和LJK"],
-["诅咒深渊","@wqbmn96spf","法师走位杀怪"],
+["诅咒深渊","@wqbmn96spf","走位wasd自动打怪"],
 
 ["鹅之雷霆","@qh23uhgg2j","开坦克飞机打大鹅"],
 
-["街头快打","@amc9burvke","热血拳脚闯关格斗"],
+["街头快打","@amc9burvke","wasd和JKL控制"],
 
 ["哐当拆机","clangclang.top","无主之地FPS大作"],
 
@@ -127,22 +135,28 @@ const raw=[
 
 ["猫猫推箱子","@hffjh7qzkm","推箱子"],
 
+["滚滚大冒险","@4bh8gu5nyn","WASD和空格跳跃"],
+
+["冰滑足球","@rqes39pj5t","J传 K抢球 L加速 I跳"],
 ["塔伊卡法师","@dmx9wacdbq","法师挖矿2号"],
 
 ["太阳系商人","@9rkv6n6rrk","开飞船运货"],
 
-["我的世界","www.bilibili.com/toy/OpusMC","10秒ai我的世界"],
+["音乐歌手","csy506.github.io/aimp3.html","音乐不是游戏"],
 
-["音乐歌手","fuwu.pages.dev/aimp3","音乐不是游戏"],
-
-["看电视","fuwu.pages.dev/cctv2","电视节目"]
+["看电视","csy506.github.io/cctv2.html","电视节目"]
 
 ];
 const gameList=raw.map(([n,h,i])=>({name:n,url:PROTO+(h[0]==="@"?MP+h.slice(1):h),intro:i}));
 const gridWrap=document.getElementById("gameGrid");
 const inputBox=document.getElementById("inputBox");
+const descTip=document.getElementById("descTip");
 let inputBuffer="",timer=null;
 const WAIT_MS=3000;
+const maxKey = gameList.length;
+// 动态更新提示文字
+descTip.innerText = `数字键 1~${maxKey}，快速打开3秒启动`;
+
 // 渲染卡片
 gameList.forEach((item,idx)=>{
   const card=document.createElement("div");
@@ -151,6 +165,7 @@ gameList.forEach((item,idx)=>{
   card.onclick=()=>window.open(item.url,"_blank");
   gridWrap.appendChild(card);
 });
+
 // 快捷键监听
 document.addEventListener("keydown",(e)=>{
   const n=parseInt(e.key);
@@ -159,13 +174,16 @@ document.addEventListener("keydown",(e)=>{
   inputBuffer+=e.key;
   inputBox.innerText=inputBuffer;
   const numVal=parseInt(inputBuffer);
-  if(numVal>=1&&numVal<=10){
+  if(numVal>=1 && numVal <= maxKey){
     timer=setTimeout(()=>{
       window.open(gameList[numVal-1].url,"_blank");
-      inputBuffer="";inputBox.innerText="无";
+      inputBuffer="";
+      inputBox.innerText="无";
     },WAIT_MS);
   }else{
-    inputBuffer="";inputBox.innerText="无";
+    // 超出范围直接清空
+    inputBuffer="";
+    inputBox.innerText="无";
   }
 })
 </script>
