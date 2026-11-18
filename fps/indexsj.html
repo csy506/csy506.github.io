@@ -316,6 +316,23 @@
   #rotateHint .skip{margin-top:40px;font-size:14px;opacity:0.7;}
   @keyframes rotateAnim{0%{transform:rotate(0deg)}100%{transform:rotate(90deg)}}
 
+  /* 强制横屏适配：竖屏小屏自动旋转整个游戏为横屏 */
+  @media screen and (max-width: 800px) and (orientation: portrait) {
+    html, body {
+      width: 100vh;
+      height: 100vw;
+      overflow: hidden;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      transform: rotate(-90deg);
+      transform-origin: top left;
+    }
+    body {
+      touch-action: none;
+    }
+  }
+
   .touch-ctrl{position:absolute;pointer-events:auto;display:none;touch-action:none;user-select:none;-webkit-user-select:none;}
   .touch-ctrl.show{display:block;}
 
@@ -577,7 +594,7 @@ moveJoyBase.addEventListener('touchcancel', handleMoveEnd, {passive:false});
 const aimArea = document.getElementById('aimArea');
 let aimTouchId = null;
 let lastAimPos = {x:0, y:0};
-const aimSensitivity = 0.0025;
+const aimSensitivity = 0.004;
 function handleAimStart(e) {
   e.preventDefault();
   const touch = e.changedTouches[0];
@@ -5146,15 +5163,25 @@ function requestLock(){
       UI.pause.classList.add('on');
       return;
     }
-    // First lock attempt never resolved → pointer lock is unavailable.
-    inputMode = 'drag';
-    ptrInView = false; _edgX = 0; _edgY = 0;
-    const r = document.body.getBoundingClientRect();
-    ptrX = r.width / 2; ptrY = r.height / 2;
-    applyDragCursor();
-    G.paused = false; G.running = true;
-    UI.pause.classList.remove('on');
-    SFX.resume();
+    // First lock attempt never resolved
+    if (isTouchDevice) {
+      // 触控设备：直接启用触控控制，不进入拖拽模式
+      useTouchControls = true;
+      document.querySelectorAll('.touch-ctrl').forEach(el => el.classList.add('show'));
+      G.paused = false; G.running = true;
+      UI.pause.classList.remove('on');
+      SFX.resume();
+    } else {
+      // 非触控设备：进入边缘拖拽模式
+      inputMode = 'drag';
+      ptrInView = false; _edgX = 0; _edgY = 0;
+      const r = document.body.getBoundingClientRect();
+      ptrX = r.width / 2; ptrY = r.height / 2;
+      applyDragCursor();
+      G.paused = false; G.running = true;
+      UI.pause.classList.remove('on');
+      SFX.resume();
+    }
   }, 1200);
 }
 UI.startScreen.addEventListener('click', ()=>{ SFX.init(); startGame(); });
@@ -6166,11 +6193,12 @@ function updatePlayer(dt){
     edgeSteerTimer = 0;
     edgeCooldownTimer = 0;
   }
-  player.yaw   -= mouseDX*SENS*sensScale;
-  player.pitch -= mouseDY*SENS*sensScale;
+  player.yaw   -= (mouseDX + touchInput.aimX)*SENS*sensScale;
+  player.pitch -= (mouseDY + touchInput.aimY)*SENS*sensScale;
   player.pitch = clamp(player.pitch, -PI/2+0.02, PI/2-0.02);
-  const swayInX = mouseDX, swayInY = mouseDY;
+  const swayInX = mouseDX + touchInput.aimX, swayInY = mouseDY + touchInput.aimY;
   mouseDX = mouseDY = 0;
+  touchInput.aimX = touchInput.aimY = 0; // 触控瞄准每帧清零，避免持续偏移
 
   /* recoil spring (partial auto-recovery) */
   player.recoilVelP = damp(player.recoilVelP, 0, 16, dt);
@@ -6230,8 +6258,11 @@ function updatePlayer(dt){
   player.height = damp(player.height, player.crouch?CROUCH_H:STAND_H, 13, dt);
 
   /* ---- wish direction ---- */
-  const f = (keys['KeyW']?1:0) - (keys['KeyS']?1:0);
-  const s = (keys['KeyD']?1:0) - (keys['KeyA']?1:0);
+  const keyF = (keys['KeyW']?1:0) - (keys['KeyS']?1:0);
+  const keyS = (keys['KeyD']?1:0) - (keys['KeyA']?1:0);
+  // 合并触控摇杆输入和键盘输入
+  const f = keyF + touchInput.moveY;
+  const s = keyS + touchInput.moveX;
   const sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
   let wx = (-sy*f) + (cy*s);
   let wz = (-cy*f) - (sy*s);
