@@ -310,28 +310,29 @@
   .cm{letter-spacing:.03em;}
   .kf{letter-spacing:.03em;}
   /* ---------------- 横屏提示与触控UI ---------------- */
-  #rotateHint{position:fixed;inset:0;z-index:9999;background:#05070a;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;font-size:18px;letter-spacing:.1em;text-align:center;padding:20px;}
+  #rotateHint{position:fixed;inset:0;z-index:9999;background:#05070a;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;font-size:18px;letter-spacing:.1em;text-align:center;padding:20px;cursor:pointer;}
   #rotateHint.show{display:flex;}
   #rotateHint .icon{font-size:80px;margin-bottom:30px;animation:rotateAnim 1.5s ease-in-out infinite alternate;}
+  #rotateHint .skip{margin-top:40px;font-size:14px;opacity:0.7;}
   @keyframes rotateAnim{0%{transform:rotate(0deg)}100%{transform:rotate(90deg)}}
 
   .touch-ctrl{position:absolute;pointer-events:auto;display:none;touch-action:none;user-select:none;-webkit-user-select:none;}
   .touch-ctrl.show{display:block;}
 
   /* 移动摇杆 */
-  #moveJoyBase{position:absolute;left:40px;bottom:40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,179,64,0.3);}
-  #moveJoyStick{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,179,64,0.5);border:2px solid rgba(255,179,64,0.7);transition:transform 0.05s;}
+  #moveJoyBase{position:absolute;left:max(20px, env(safe-area-inset-left));bottom:max(30px, env(safe-area-inset-bottom));width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,179,64,0.3);}
+  #moveJoyStick{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,179,64,0.5);border:2px solid rgba(255,179,64,0.7);transition:transform 0.05s;}
 
   /* 瞄准区 */
-  #aimArea{position:absolute;right:0;top:0;bottom:120px;width:60%;}
+  #aimArea{position:absolute;right:0;top:0;bottom:110px;width:60%;}
 
   /* 功能按钮 */
-  .touch-btn{position:absolute;width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:.1em;color:#fff;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);}
+  .touch-btn{position:absolute;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:.1em;color:#fff;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);}
   .touch-btn:active{background:rgba(255,255,255,0.2);transform:scale(0.95);}
-  #btnFire{right:40px;bottom:140px;width:90px;height:90px;background:rgba(255,59,48,0.5);border-color:rgba(255,59,48,0.7);font-size:14px;}
-  #btnAim{right:130px;bottom:230px;}
-  #btnReload{right:40px;bottom:250px;}
-  #btnJump{left:200px;bottom:60px;}
+  #btnFire{right:max(30px, env(safe-area-inset-right));bottom:max(120px, env(safe-area-inset-bottom));width:80px;height:80px;background:rgba(255,59,48,0.5);border-color:rgba(255,59,48,0.7);font-size:14px;}
+  #btnAim{right:max(110px, env(safe-area-inset-right));bottom:200px;}
+  #btnReload{right:max(30px, env(safe-area-inset-right));bottom:220px;}
+  #btnJump{left:170px;bottom:max(40px, env(safe-area-inset-bottom));}
 
 </style>
 </head>
@@ -441,8 +442,9 @@
 
 <div id="rotateHint">
   <div class="icon">📱</div>
-  <div>请旋转手机到横屏方向</div>
-  <div style="font-size:14px;margin-top:10px;opacity:0.7;">游戏需要横屏体验最佳</div>
+  <div>请旋转手机到横屏方向体验最佳</div>
+  <div style="font-size:14px;margin-top:10px;opacity:0.7;">竖屏也可以游玩，点击任意位置继续</div>
+  <div class="skip">点击任意位置开始游戏 →</div>
 </div>
 
 <div id="moveJoyBase" class="touch-ctrl">
@@ -470,17 +472,34 @@
 
 /* ---------------- 横屏检测与适配 ---------------- */
 const rotateHint = document.getElementById('rotateHint');
+let rotateHintDismissed = false;
+
 function checkOrientation() {
   const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  if (isTouch && window.innerWidth < 800 && window.innerHeight > window.innerWidth) {
+  // 修复：不再强制要求宽度>800，只在竖屏（高>宽）且未手动关闭提示时显示横屏提示
+  // 只要用户旋转到横屏（宽>高）就自动隐藏提示，适配所有尺寸的手机
+  if (isTouch && !rotateHintDismissed && window.innerHeight > window.innerWidth) {
     rotateHint.classList.add('show');
   } else {
     rotateHint.classList.remove('show');
   }
 }
+
+// 点击提示层任意位置可以手动关闭提示，允许用户竖屏游玩
+rotateHint.addEventListener('click', () => {
+  rotateHintDismissed = true;
+  rotateHint.classList.remove('show');
+  // 手动触发一次窗口resize，更新渲染尺寸
+  window.dispatchEvent(new Event('resize'));
+});
+
 checkOrientation();
 window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', checkOrientation);
+window.addEventListener('orientationchange', () => {
+  // 旋转后延迟一点再检测，等待窗口尺寸更新完成
+  setTimeout(checkOrientation, 150);
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
+});
 
 /* ---------------- 触控虚拟摇杆与瞄准 ---------------- */
 const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
